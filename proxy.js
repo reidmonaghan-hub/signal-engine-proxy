@@ -141,6 +141,107 @@ function tagClusters(events) {
   return events.map((e) => ({ ...e, cluster: clusterTickers.has(e.ticker) && e.direction === "BUY" }));
 }
 
+// ---- 13F: INSTITUTIONAL POSITIONS (QUARTERLY, ~45 DAY LAG) -----------------
+/**
+ * Reads each fund's two most recent 13F-HR filings from EDGAR, sums shares per
+ * issuer, and diffs quarter-over-quarter for watchlist names. HONEST LIMITS:
+ * 13F is quarterly and filed up to 45 days after quarter end — this is regime
+ * confirmation at its laggiest. It shows long US-equity positions only (no
+ * shorts, no derivatives intent). Never read it as a timing signal.
+ *
+ * Funds tracked (verify any CIK at https://www.sec.gov/cgi-bin/browse-edgar):
+ */
+const FUNDS = [
+  { name: "Berkshire Hathaway", cik: "0001067983" },
+  { name: "Bridgewater", cik: "0001350694" },
+  { name: "Citadel Advisors", cik: "0001423053" },
+  { name: "Renaissance Tech", cik: "0001037389" },
+  { name: "ARK Invest", cik: "0001697748" },
+];
+// 13F infotables identify holdings by issuer NAME, not ticker — map them.
+const ISSUER = {
+  COIN: /coinbase/i, HOOD: /robinhood/i, NDAQ: /nasdaq/i,
+  ICE: /intercontinental\s*exch/i, NVDA: /nvidia/i, MU: /micron/i,
+};
+
+let _13fCache = { at: 0, data: null }; // quarterly data — cache 12h, be kind to EDGAR
+
+function parseInfotable(xml, tickers) {
+  // Sum shares + reported value per matched watchlist ticker.
+  const out = {};
+  const blocks = xml.match(/<(?:\w+:)?infoTable>[\s\S]*?<\/(?:\w+:)?infoTable>/gi) || [];
+  for (const b of blocks) {
+    const issuer = (b.match(/<(?:\w+:)?nameOfIssuer>\s*([^<]+)/i) || [])[1] || "";
+    for (const tk of tickers) {
+      if (!ISSUER[tk] || !ISSUER[tk].test(issuer)) continue;
+      const shares = parseFloat((b.match(/<(?:\w+:)?sshPrnamt>\s*([\d.]+)/i) || [])[1] || "0");
+      const value = parseFloat((b.match(/<(?:\w+:)?value>\s*([\d.]+)/i) || [])[1] || "0");
+      (out[tk] ||= { shares: 0, value: 0 });
+      out[tk].shares += shares; out[tk].value += value;
+    }
+  }
+  return out;
+}
+
+async function fetch13fHoldings(cikPadded, accession, tickers) {
+  const cikInt = parseInt(cikPadded, 10);
+  const accNoDash = accession.replace(/-/g, "");
+  const base = `https://www.sec.gov/Archives/edgar/data/${cikInt}/${accNoDash}`;
+  const dir = await (await secGet(`${base}/index.json`)).json();
+  const files = (dir?.directory?.item || []).map((f) => f.name);
+  // The holdings live in the information-table XML (not primary_doc.xml).
+  const info = files.find((f) => /infotable|information/i.test(f) && f.endsWith(".xml"))
+    || files.find((f) => f.endsWith(".xml") && !/primary_doc/i.test(f));
+  if (!info) return null;
+  await sleep(120);
+  const xml = await (await secGet(`${base}/${info}`)).text();
+  return { holdings: parseInfotable(xml, tickers), doc: `${base}/${info}` };
+}
+
+async function fetch13f(tickers) {
+  if (_13fCache.data && Date.now() - _13fCache.at < 12 * 3600 * 1000) return _13fCache.data;
+  const rows = [];
+  for (const fund of FUNDS) {
+    try {
+      const idx = await (await secGet(`https://data.sec.gov/submissions/CIK${fund.cik}.json`)).json();
+      const recent = idx?.filings?.recent;
+      if (!recent) continue;
+      // Latest two 13F-HR filings = current + prior quarter.
+      const picks = [];
+      for (let i = 0; i < recent.form.length && picks.length < 2; i++) {
+        if (recent.form[i] === "13F-HR") picks.push({ acc: recent.accessionNumber[i], filed: recent.filingDate[i] });
+      }
+      if (!picks.length) continue;
+      await sleep(150);
+      const curr = await fetch13fHoldings(fund.cik, picks[0].acc, tickers);
+      await sleep(150);
+      const prev = picks[1] ? await fetch13fHoldings(fund.cik, picks[1].acc, tickers) : null;
+      if (!curr) continue;
+      const seen = new Set([...Object.keys(curr.holdings), ...Object.keys(prev?.holdings || {})]);
+      for (const tk of seen) {
+        const c = curr.holdings[tk], p = prev?.holdings?.[tk];
+        let move, chg;
+        if (c && !p) { move = "Initiated"; chg = "new"; }
+        else if (!c && p) { move = "Exited"; chg = "-100%"; }
+        else {
+          const pct = p.shares ? Math.round(((c.shares - p.shares) / p.shares) * 100) : 0;
+          if (Math.abs(pct) < 1) { move = "Held"; chg = "~flat QoQ"; }
+          else { move = pct > 0 ? "Added" : "Trimmed"; chg = `${pct > 0 ? "+" : ""}${pct}% QoQ`; }
+        }
+        rows.push({ fund: fund.name, ticker: tk, move, chg, shares: c?.shares || 0, value: c?.value || 0, filed: picks[0].filed, doc: curr.doc });
+      }
+    } catch (e) { /* skip fund — EDGAR hiccup or no 13F */ }
+    await sleep(200);
+  }
+  const data = {
+    source: "SEC EDGAR 13F-HR",
+    lagNote: "Quarterly; filed up to 45 days after quarter end. Long US-equity positions only — regime confirmation, never timing.",
+    count: rows.length, data: rows.sort((a, b) => new Date(b.filed) - new Date(a.filed)),
+  };
+  _13fCache = { at: Date.now(), data };
+  return data;
+}
+
 // ---- CONGRESS: SENATE (FREE) + HOUSE VIA FMP (OPTIONAL) --------------------
 async function fetchSenateTrades(tickers) {
   // Senate Stock Watcher: free, flat JSON, no key. Large file — we filter.
@@ -229,6 +330,10 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { source: "SEC EDGAR Form 4", lagNote: "~2 day filing lag", count: all.length, data: all.slice(0, 12) });
     }
 
+    if (url.pathname === "/api/13f") {
+      return send(res, 200, await fetch13f(tickers));
+    }
+
     if (url.pathname === "/api/congress") {
       const [senate, house] = await Promise.all([
         fetchSenateTrades(tickers).catch(() => []),
@@ -249,7 +354,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { source: "Stooq daily OHLC", ticker: ticker.toUpperCase(), count: bars.length, data: bars });
     }
 
-    return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/prices", "/api/health"] });
+    return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/prices", "/api/health"] });
   } catch (err) {
     return send(res, 500, { error: String(err.message || err) });
   }
