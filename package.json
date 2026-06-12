@@ -1,0 +1,14 @@
+{
+  "name": "signal-engine-proxy",
+  "version": "1.0.0",
+  "description": "Data proxy for Signal Engine — fetches live SEC EDGAR, congressional trades, and daily prices past the browser CORS wall.",
+  "type": "module",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

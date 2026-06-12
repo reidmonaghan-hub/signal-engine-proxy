@@ -1,0 +1,27 @@
+# render.yaml — one-click deploy for the Signal Engine proxy.
+#
+# How to use:
+#   1. Put proxy.js + package.json + this file in a GitHub repo (the server/ folder).
+#   2. On render.com: New → Blueprint → connect the repo. Render reads this file.
+#   3. Set SEC_UA (required) and optionally FMP_KEY in the dashboard, then deploy.
+#   4. Copy the resulting https URL into SignalEnginePlatform.jsx as PROXY_URL.
+#
+# Free tier note: Render free services sleep after ~15 min idle and cold-start
+# on the next request (a few seconds). Fine for a personal dashboard. For true
+# 24/7 always-warm, use a paid instance or ping /api/health on a schedule.
+
+services:
+  - type: web
+    name: signal-engine-proxy
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node proxy.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: SEC_UA
+        sync: false        # set in dashboard: "SignalEngine/1.0 (you@example.com)"
+      - key: FMP_KEY
+        sync: false        # optional: free key from financialmodelingprep.com
+      - key: NODE_VERSION
+        value: "20"
