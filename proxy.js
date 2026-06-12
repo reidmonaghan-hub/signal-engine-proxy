@@ -356,14 +356,19 @@ async function fetchPrices(ticker, days) {
  */
 let _regimeCache = { at: 0, data: null };
 
-async function fredSeries(id) {
-  const r = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`);
-  if (!r.ok) throw new Error(`FRED ${r.status}`);
-  const rows = (await r.text()).trim().split("\n").slice(1)
-    .map((l) => { const [date, v] = l.split(","); return { date, v: parseFloat(v) }; })
-    .filter((x) => !isNaN(x.v));
-  if (!rows.length) throw new Error(`FRED ${id}: no data`);
-  return rows;
+async function fredSeries(id, attempt = 1) {
+  try {
+    const r = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`);
+    if (!r.ok) throw new Error(`FRED ${r.status}`);
+    const rows = (await r.text()).trim().split("\n").slice(1)
+      .map((l) => { const [date, v] = l.split(","); return { date, v: parseFloat(v) }; })
+      .filter((x) => !isNaN(x.v));
+    if (!rows.length) throw new Error(`FRED ${id}: no data`);
+    return rows;
+  } catch (e) {
+    if (attempt < 3) { await sleep(800 * attempt); return fredSeries(id, attempt + 1); } // transient hiccups happen
+    throw e;
+  }
 }
 
 async function fetchRegime() {
@@ -395,22 +400,24 @@ async function fetchRegime() {
   } catch (e) { lights.push({ id: "credit", label: "High-yield credit spread", value: "—", status: "N/A", detail: "FRED unreachable.", source: "https://fred.stlouisfed.org/series/BAMLH0A0HYM2" }); }
 
   try {
-    const bars = await fetchPrices("^vix", 60); // Stooq carries ^VIX
-    const v = bars[bars.length - 1].close;
+    const s = await fredSeries("VIXCLS"); // VIX from FRED too — one reliable source beats two flaky ones
+    const v = s[s.length - 1].v;
     lights.push({
-      id: "vix", label: "VIX (equity volatility)", value: v.toFixed(1), asOf: bars[bars.length - 1].date,
+      id: "vix", label: "VIX (equity volatility)", value: v.toFixed(1), asOf: s[s.length - 1].date,
       status: v >= 28 ? "STRESS" : v >= 20 ? "WATCH" : "CALM",
       detail: v >= 28 ? "Elevated — markets pricing large moves; expect violent both-way action." : v >= 20 ? "Raised — above long-run average." : "Subdued.",
-      source: "https://stooq.com/q/?s=%5Evix",
+      source: "https://fred.stlouisfed.org/series/VIXCLS",
     });
-  } catch (e) { lights.push({ id: "vix", label: "VIX (equity volatility)", value: "—", status: "N/A", detail: "Stooq unreachable.", source: "https://stooq.com/q/?s=%5Evix" }); }
+  } catch (e) { lights.push({ id: "vix", label: "VIX (equity volatility)", value: "—", status: "N/A", detail: "FRED unreachable.", source: "https://fred.stlouisfed.org/series/VIXCLS" }); }
 
   const data = {
-    source: "FRED (St. Louis Fed) + Stooq — primary, free",
+    source: "FRED (St. Louis Fed) — primary, free",
     note: "Regime confirmation only. None of these predict or time anything; they tell you how much risk the market is already pricing.",
     lights,
   };
-  _regimeCache = { at: Date.now(), data };
+  // Don't lock a failure in for a full hour: retry partial results after 5 min.
+  const ttl = lights.some((l) => l.status === "N/A") ? 5 * 60 * 1000 : 3600 * 1000;
+  _regimeCache = { at: Date.now() - (3600 * 1000 - ttl), data };
   return data;
 }
 
