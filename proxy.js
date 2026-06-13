@@ -677,12 +677,15 @@ async function fetchMacro() {
 let _newsCache = { at: 0, data: null };
 
 const RSS_SOURCES = [
+  // PRIMARY tier — central bank & regulator feeds. Low noise; treat like disclosures.
   { name: "Federal Reserve", url: "https://www.federalreserve.gov/feeds/press_all.xml", tier: "PRIMARY" },
-  { name: "ECB", url: "https://www.ecb.europa.eu/rss/press.html", tier: "PRIMARY" },
-  { name: "BIS", url: "https://www.bis.org/rssfeed.htm", tier: "PRIMARY" },
-  { name: "IMF", url: "https://www.imf.org/en/News/rss?language=eng", tier: "PRIMARY" },
-  { name: "Reuters Markets", url: "https://feeds.reuters.com/reuters/businessNews", tier: "NEWS" },
-  { name: "FT Markets", url: "https://www.ft.com/markets?format=rss", tier: "NEWS" },
+  { name: "ECB",             url: "https://www.ecb.europa.eu/press/pr/activities/rss/html/ecb.rss.en.xml", tier: "PRIMARY" },
+  { name: "BIS",             url: "https://www.bis.org/rssfeed.htm", tier: "PRIMARY" },
+  { name: "IMF",             url: "https://www.imf.org/en/News/rss?language=eng", tier: "PRIMARY" },
+  // NEWS tier — wire services. Faster, noisier; context only, never signals.
+  // Reuters deprecated public RSS 2020; FT requires subscription. Replaced with:
+  { name: "CNBC Markets",   url: "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147", tier: "NEWS" },
+  { name: "Bloomberg",      url: "https://feeds.bloomberg.com/markets/news.rss", tier: "NEWS" },
 ];
 
 const MACRO_KEYWORDS = /tokenis|tokeniz|crypto|bitcoin|digital asset|RWA|blockchain|insider|congress|senate|SEC |EDGAR|liquidity|credit spread|yield curve|fed balance|M2|rate cut|rate hike|quantitative|QE|QT|inflation|recession|dollar|DXY|NVDA|nvidia|coinbase|COIN|HOOD|robinhood|nasdaq|NDAQ|blackrock|BLK|circle|CME|broadcom|AMD|micron/i;
@@ -780,8 +783,12 @@ async function fetchActivist() {
 
   await Promise.all(THEMES.map(async ({ q, theme }) => {
     try {
-      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC+13D,SC+13G,SC+13D%2FA,SC+13G%2FA&dateRange=custom&startdt=${startDate}`;
-      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(10000) });
+      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC%2013D,SC%2013G,SC%2013D%2FA,SC%2013G%2FA&dateRange=custom&startdt=${startDate}`;
+      const ctrl = new AbortController();
+      const tmo = setTimeout(() => ctrl.abort(), 30000);
+      let r;
+      try { r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: ctrl.signal }); }
+      finally { clearTimeout(tmo); }
       if (!r.ok) return;
       const data = await r.json();
       const hits = data.hits?.hits || [];
