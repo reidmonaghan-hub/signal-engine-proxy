@@ -764,61 +764,59 @@ const ACTIVIST_TTL = 2 * 60 * 60 * 1000; // 2 hours — these filings are rare, 
 async function fetchActivist() {
   if (_activistCache.data && Date.now() - _activistCache.at < ACTIVIST_TTL) return _activistCache.data;
 
-  // 24-month cutoff — 13D/13G filings are rare; 12 months filtered too aggressively
-  const cutoffDate = new Date(Date.now() - 730 * 24 * 3600 * 1000).toISOString().split("T")[0];
+  // Search by THEME KEYWORDS across all of EDGAR — not by company.
+  // This gives fresh signal: whoever is accumulating 5%+ in crypto/AI/fintech RIGHT NOW.
+  const startDate = new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString().split("T")[0]; // last 60 days
 
-  // Run EFTS queries in parallel batches of 5 to avoid sequential timeout
-  async function queryOne({ ticker, name }) {
+  const THEMES = [
+    { q: encodeURIComponent("cryptocurrency OR bitcoin OR blockchain OR \"digital assets\""), theme: "crypto" },
+    { q: encodeURIComponent("tokenization OR tokenisation OR \"on-chain\" OR XRPL"), theme: "tokenisation" },
+    { q: encodeURIComponent("\"artificial intelligence\" OR semiconductor OR Nvidia OR AMD OR Broadcom"), theme: "AI/chips" },
+    { q: encodeURIComponent("fintech OR Coinbase OR Robinhood OR \"payment network\" OR PayPal"), theme: "fintech" },
+  ];
+
+  const seen = new Set();
+  const results = [];
+
+  await Promise.all(THEMES.map(async ({ q, theme }) => {
     try {
-      const q = encodeURIComponent(`"${name}"`);
-      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC+13D,SC+13G,SC+13D%2FA,SC+13G%2FA`;
-      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(8000) });
-      if (!r.ok) return [];
+      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC+13D,SC+13G,SC+13D%2FA,SC+13G%2FA&dateRange=custom&startdt=${startDate}`;
+      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(10000) });
+      if (!r.ok) return;
       const data = await r.json();
       const hits = data.hits?.hits || [];
-      const out = [];
-      for (const hit of hits.slice(0, 5)) {
+      for (const hit of hits.slice(0, 8)) {
         const s = hit._source || {};
+        const accession = s.accession_no || hit._id || "";
+        if (!accession || seen.has(accession)) continue;
+        seen.add(accession);
         const fileDate = s.file_date || s.fileDate || null;
-        if (!fileDate || fileDate < cutoffDate) continue;
         const formType = s.form_type || s.formType || "";
-        const accession = s.accession_no || s.accessionNumber || hit._id || "";
-        const filer = s.display_names?.[0]?.name || s.entity_name || s.entityName || accession.slice(0, 10) || "Unknown";
+        // In 13D/13G filings: filer = activist investor, target = subject company
+        const filer = s.display_names?.[0]?.name || s.entity_name || "Unknown";
+        const target = s.display_names?.[1]?.name || s.display_names?.[0]?.name || s.entity_name || "";
         const isActivist = /13D/.test(formType);
         const isAmendment = /\/A/.test(formType);
-        out.push({ ticker, company: name, filer, formType: formType || "SC 13?", isActivist, isAmendment, date: fileDate, accession: accession || null });
+        results.push({ theme, filer, target, formType: formType || "SC 13?", isActivist, isAmendment, date: fileDate, accession });
       }
-      return out;
-    } catch { return []; }
-  }
+    } catch { /* skip */ }
+  }));
 
-  // Batch parallel execution (5 at a time, 200ms between batches)
-  const allResults = [];
-  for (let i = 0; i < ACTIVIST_MAP.length; i += 5) {
-    const batch = ACTIVIST_MAP.slice(i, i + 5);
-    const batchResults = await Promise.all(batch.map(queryOne));
-    batchResults.forEach(r => allResults.push(...r));
-    if (i + 5 < ACTIVIST_MAP.length) await sleep(200);
-  }
-
-  // Sort: new 13D (activist) first, then new 13G, then amendments, then by date
-  allResults.sort((a, b) => {
-    const rankA = a.isActivist && !a.isAmendment ? 0 : !a.isActivist && !a.isAmendment ? 1 : 2;
-    const rankB = b.isActivist && !b.isAmendment ? 0 : !b.isActivist && !b.isAmendment ? 1 : 2;
-    if (rankA !== rankB) return rankA - rankB;
-    return (b.date || "").localeCompare(a.date || "");
+  // Sort: newest first, then 13D before 13G
+  results.sort((a, b) => {
+    const dateSort = (b.date || "").localeCompare(a.date || "");
+    if (dateSort !== 0) return dateSort;
+    return (a.isActivist === b.isActivist) ? 0 : a.isActivist ? -1 : 1;
   });
-  const results = allResults;
-
   const data = {
-    source: "SEC EDGAR SC 13D / SC 13G",
-    note: "13D = activist (5%+ with intent to influence). 13G = passive holder (5%+ accumulation). Both require a public filing within 10 days of crossing the threshold.",
+    source: "SEC EDGAR SC 13D / SC 13G — last 60 days, crypto/AI/fintech themes",
+    note: "13D = activist (5%+ with intent to influence). 13G = passive holder (5%+ accumulation). Searched by theme keyword across all of EDGAR — not limited to watchlist.",
     lagNote: "10-day filing window after crossing 5% threshold.",
-    count: results.length,
-    data: results,
+    count: deduped.length,
+    data: deduped,
   };
 
-  if (results.length > 0) _activistCache = { at: Date.now(), data };
+  if (deduped.length > 0) _activistCache = { at: Date.now(), data };
   return data;
 }
 
