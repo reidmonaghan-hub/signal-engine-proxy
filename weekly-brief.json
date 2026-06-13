@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-06-13T08:00:00Z",
+  "nextBriefing": "2026-06-20",
+  "weekLabel": "w/c 13 Jun 2026",
+  "experts": [
+    {
+      "id": "mc",
+      "initials": "MC",
+      "name": "Dr. Maya Chen",
+      "role": "Markets Researcher",
+      "focus": "Emerging markets · Early entries · Institutional positioning leads"
+    },
+    {
+      "id": "ap",
+      "initials": "AP",
+      "name": "Prof. Aleksei Petrov",
+      "role": "Geopolitical Economist",
+      "focus": "Macro geopolitics · Trade flows · Dollar system stress · BRICS dynamics"
+    }
+  ],
+  "guestExperts": [],
+  "nextInviteNote": "If US-China export control risk escalates or the stablecoin bill reaches a vote, invite a supply chain analyst and a regulatory expert respectively.",
+  "sections": [
+    {
+      "heading": "Opening — where is the early edge right now?",
+      "turns": [
+        {
+          "expert": "mc",
+          "text": "The most consistent early-entry signal I track is institutional filing lag — when a big fund first files a 13G, you're typically 30 to 90 days ahead of the trade becoming common knowledge. Right now that lag is most visible in tokenised real-world assets. BlackRock's BUIDL fund crossed $500M, Franklin Templeton's FOBXX is on-chain — these aren't experiments anymore, they're product lines. The institutions building around them are still small-cap or pre-public. That's the early window.",
+          "pills": ["early signal", "tokenisation"]
+        },
+        {
+          "expert": "ap",
+          "text": "I'd add geopolitical pressure as the catalyst compressing that timeline. The SWIFT exclusions from 2022 onward weren't just punitive — they demonstrated dollar-system brittleness that every G20 finance ministry has since modelled. What you're seeing in Gulf states, ASEAN, and increasingly India is a quiet build-out of alternative settlement rails. XRP and the XRPL are explicitly positioned for this corridor — UAE, Singapore, and Japanese bank integrations are not coincidental. They're hedge positions by sovereign financial systems.",
+          "pills": ["geopolitical", "XRP"]
+        }
+      ]
+    },
+    {
+      "heading": "Where is the early market entry that isn't crowded yet?",
+      "turns": [
+        {
+          "expert": "mc",
+          "text": "Three themes I'm watching that the mainstream hasn't fully priced. First, tokenised sovereign debt — emerging market governments issuing bonds on-chain to access global liquidity without going through US-dominated syndication. Brazil and Kazakhstan have both piloted this. Second, on-chain FX settlement — cross-border stablecoin rails that compress 2-day SWIFT settlement to seconds. Visa and Mastercard are building, but the pure-play infrastructure layer is still cheap. Third, AI-data monetisation — companies that own proprietary datasets and are beginning to license them to model trainers. IP frameworks aren't even written yet.",
+          "pills": ["early signal", "3 themes"]
+        },
+        {
+          "expert": "ap",
+          "text": "The sovereign debt angle connects to something I watch closely — dollar hegemony stress. The Fed's rate cycle is the single biggest variable in EM capital flows. When dollar rates stay elevated, capital doesn't leave the US; when the cycle breaks, you get a violent rotation into risk assets and EM. The Signal Engine thesis — XRP, BTC, tokenisation — benefits from exactly that rotation. The geopolitical sub-signal to watch: if BRICS member states formalise a commodity pricing mechanism that bypasses the dollar, you'll see dollar weakening that front-runs any formal announcement by weeks.",
+          "pills": ["geopolitical", "dollar cycle"]
+        }
+      ]
+    },
+    {
+      "heading": "Risks — what could break the thesis?",
+      "turns": [
+        {
+          "expert": "mc",
+          "text": "The biggest risk is regulatory front-running. The moment the SEC or MiCA designate a specific asset class as a security, you get a liquidity vacuum before institutional flow can come in. It's not a reason to exit the thesis — it's a reason to watch legislative calendars. A stablecoin framework passing is bullish for the whole space; delayed or killed would compress the tokenisation trade by 12–18 months.",
+          "pills": ["risk", "regulatory"]
+        },
+        {
+          "expert": "ap",
+          "text": "My risk flag is escalation asymmetry. If US-China tensions produce export control expansion to semiconductor packaging or HBM memory, you get an AI infrastructure shock that hits the chips thesis hard short term. Nvidia's supply chain runs through TSMC in Taiwan — a single point of geopolitical failure. However, I'd frame that as a lagged entry opportunity rather than a thesis break: a supply shock tends to spike prices, create a fear washout, then recover strongly as supply constraints improve pricing power for the survivors.",
+          "pills": ["risk", "watch"]
+        }
+      ]
+    },
+    {
+      "heading": "Convergence — the overlapping signal",
+      "turns": [
+        {
+          "expert": "mc",
+          "text": "Where we fully align: the parallel build is the key signal. Institutions aren't waiting for regulatory clarity — they're building tokenisation infrastructure now and will activate it the moment the framework arrives. That means the early entry window for the infrastructure layer is now, not after clarity. By the time stablecoin legislation passes, the picks-and-shovels plays — settlement rails, custody, on-chain compliance — will already be priced. The 13D/13G activist scan is the right proxy: watch for 5%+ accumulation in fintech and crypto adjacent names months before any announcement.",
+          "pills": ["conviction"]
+        },
+        {
+          "expert": "ap",
+          "text": "Closing thought from the geopolitical lens: the dollar is not collapsing — but its monopoly on trade settlement is being structurally competed with for the first time since Bretton Woods. That's a decade-long shift, not a trade. The winning position is exposure to the infrastructure of the new settlement layer — blockchain rails, tokenised assets, AI-driven compliance — held with patience and sized by risk, not conviction. The regime is shifting. The question is pace, not direction.",
+          "pills": ["regime shift"]
+        }
+      ]
+    }
+  ],
+  "thesisEffects": [
+    {
+      "thesis": "tokenisation",
+      "label": "Tokenisation Infrastructure",
+      "effect": "BULLISH",
+      "reason": "Institutional product lines (BlackRock BUIDL, Franklin FOBXX) confirm the structural build is live. Infrastructure layer still early-priced. RWA tokenisation and on-chain FX settlement are the two earliest uncrowded entries."
+    },
+    {
+      "thesis": "xrp",
+      "label": "XRP Settlement Rail",
+      "effect": "BULLISH",
+      "reason": "Sovereign financial systems (Gulf, ASEAN, Japan) building alternative settlement rails as SWIFT dependency hedge. XRP/XRPL corridor integrations are real, not speculative. Supply overhang remains; size by risk."
+    },
+    {
+      "thesis": "rotation",
+      "label": "Post-SpaceX Rotation",
+      "effect": "NEUTRAL",
+      "reason": "Dollar cycle is the key variable. Rotation thesis needs Fed pivot signal to materialise. US-China export control risk is a short-term negative for chips but a lagged entry opportunity — not a thesis break."
+    }
+  ],
+  "actionItems": [
+    {
+      "type": "watch",
+      "text": "Track the US stablecoin bill legislative calendar — pass = 12–18 month acceleration; delay = compression. Binary event for the tokenisation thesis."
+    },
+    {
+      "type": "watch",
+      "text": "Monitor DXY and Fed pivot signals. Dollar weakening is the rotation trigger for EM risk assets and the tokenisation trade."
+    },
+    {
+      "type": "watch",
+      "text": "Watch BRICS commodity pricing announcements — any formalisation of non-dollar settlement will front-run dollar weakness by weeks."
+    },
+    {
+      "type": "research",
+      "text": "Screen 13G filings in fintech and custody names for early RWA infrastructure accumulation. The activist scanner is already on this — look for names you don't recognise yet."
+    },
+    {
+      "type": "research",
+      "text": "Investigate on-chain FX settlement pure-plays (not Visa/MA — the infrastructure layer underneath them). Still early-priced."
+    }
+  ]
+}
