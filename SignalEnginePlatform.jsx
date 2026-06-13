@@ -1255,7 +1255,11 @@ function BriefView({ briefingData, setTab, setLogTicker, setJournal }) {
       autoLogged: false,
       doc: null,
     };
-    setJournal((prev) => [entry, ...prev]);
+    setJournal((prev) => {
+      const updated = [entry, ...prev];
+      saveJournal(updated);
+      return updated;
+    });
     setLogTicker(item.ticker || "");
     setTab("journal");
   };
