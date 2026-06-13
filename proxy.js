@@ -30,6 +30,42 @@
  */
 
 import http from "node:http";
+import { readFileSync, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+const __dir = dirname(fileURLToPath(import.meta.url));
+
+// ---- PWA STATIC ASSETS -------------------------------------------------------
+const MANIFEST = JSON.stringify({
+  name: "Signal Engine",
+  short_name: "Signal·Engine",
+  description: "Disclosed smart-money intelligence — not financial advice.",
+  start_url: "/",
+  display: "standalone",
+  background_color: "#0B0E11",
+  theme_color: "#0B0E11",
+  orientation: "portrait-primary",
+  icons: [
+    { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
+  ],
+});
+const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="36" fill="#0B0E11"/>
+  <circle cx="96" cy="96" r="44" fill="none" stroke="#E0A33E" stroke-width="5"/>
+  <circle cx="96" cy="96" r="8" fill="#E0A33E"/>
+  <line x1="96" y1="16" x2="96" y2="52" stroke="#E0A33E" stroke-width="5" stroke-linecap="round"/>
+  <line x1="96" y1="140" x2="96" y2="176" stroke="#E0A33E" stroke-width="5" stroke-linecap="round"/>
+  <line x1="16" y1="96" x2="52" y2="96" stroke="#E0A33E" stroke-width="5" stroke-linecap="round"/>
+  <line x1="140" y1="96" x2="176" y2="96" stroke="#E0A33E" stroke-width="5" stroke-linecap="round"/>
+</svg>`;
+const SW_JS = `
+const CACHE='se-v2';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['/']))); self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))))});
+self.addEventListener('fetch',e=>{
+  if(e.request.url.includes('/api/'))return;
+  e.respondWith(fetch(e.request).then(r=>{const cl=r.clone();caches.open(CACHE).then(c=>c.put(e.request,cl));return r;}).catch(()=>caches.match(e.request)));
+});`;
 
 // ---- CONFIG ---------------------------------------------------------------
 const PORT = process.env.PORT || 8787;
@@ -694,6 +730,28 @@ const server = http.createServer(async (req, res) => {
     .split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
 
   try {
+    // ---- STATIC / PWA ROUTES (serve the app itself) --------------------------
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      const htmlPath = join(__dir, "SignalEngine.html");
+      if (existsSync(htmlPath)) {
+        const html = readFileSync(htmlPath, "utf8");
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" });
+        return res.end(html);
+      }
+    }
+    if (url.pathname === "/manifest.json") {
+      res.writeHead(200, { "Content-Type": "application/manifest+json", "Cache-Control": "max-age=86400" });
+      return res.end(MANIFEST);
+    }
+    if (url.pathname === "/icon.svg") {
+      res.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "max-age=604800" });
+      return res.end(ICON_SVG);
+    }
+    if (url.pathname === "/sw.js") {
+      res.writeHead(200, { "Content-Type": "application/javascript", "Cache-Control": "no-cache" });
+      return res.end(SW_JS);
+    }
+    // ---- API ROUTES ----------------------------------------------------------
     if (url.pathname === "/api/health") {
       return send(res, 200, {
         ok: true, time: new Date().toISOString(),
