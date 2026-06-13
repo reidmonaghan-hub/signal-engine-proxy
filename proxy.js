@@ -86,6 +86,24 @@ async function issuerRegexFor(ticker) {
 // ---- TINY UTILITIES -------------------------------------------------------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// ---- SERVER-SIDE PRICE CACHE -----------------------------------------------
+// Protects the Twelve Data 800 req/day free quota. Historical (400-day) fetches
+// are cached 30 minutes; short-window fetches 10 minutes. Each ticker+days combo
+// is cached independently. The cache lives in memory — a Render restart clears it,
+// which is fine: it refills within one request cycle.
+const _pxCache = new Map(); // key: "TICKER:days" → { at: timestamp, data: bars[] }
+const PX_TTL_SHORT = 10 * 60 * 1000;   // 10 min for recent/short-window
+const PX_TTL_LONG  = 30 * 60 * 1000;   // 30 min for historical (400-day backtest)
+async function fetchPricesCached(ticker, days) {
+  const key = `${ticker}:${days || 0}`;
+  const ttl = (!days || days >= 200) ? PX_TTL_LONG : PX_TTL_SHORT;
+  const hit = _pxCache.get(key);
+  if (hit && Date.now() - hit.at < ttl) return hit.data;
+  const data = await fetchPrices(ticker, days);
+  _pxCache.set(key, { at: Date.now(), data });
+  return data;
+}
+
 function cors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -128,7 +146,7 @@ async function fetchInsidersForCik(ticker, cik) {
     const base = `https://www.sec.gov/Archives/edgar/data/${cikInt}/${accNoDash}`;
     const docUrl = `${base}/${primary}`;
 
-    let direction = "UNKNOWN", value = null, role = "", who = "";
+    let direction = "UNKNOWN", value = null, role = "", who = "", plan10b5 = false;
     try {
       await sleep(120); // stay under rate cap
       // The XML form doc is usually the primary; if HTML, derive the .xml sibling.
@@ -154,10 +172,18 @@ async function fetchInsidersForCik(ticker, cik) {
       const isOff = /<isOfficer>\s*(1|true)/i.test(xml);
       const title = (xml.match(/<officerTitle>\s*([^<]+)</i) || [])[1]?.trim();
       role = title || (isDir ? "Director" : isOff ? "Officer" : "10% Owner");
+
+      // Rule 10b5-1 preplanned sale detection. A sale under a 10b5-1 plan was
+      // scheduled months in advance — the decision was made under different market
+      // conditions. Still informative, but flagged to reduce false-positive distribution warnings.
+      if (direction === "SELL") {
+        const fn = (xml.match(/<footnoteText>([^<]*)/gi) || []).map((m) => m.replace(/<[^>]+>/g, "")).join(" ");
+        plan10b5 = /<Rule10b5-1TransactionIndicator>\s*Y/i.test(xml) || /rule\s*10b5-1|10b5-1\s*plan/i.test(fn);
+      }
     } catch (e) { /* leave UNKNOWN; still surface the event + link */ }
 
     events.push({
-      ticker, cik: cikInt, who, role, direction, value,
+      ticker, cik: cikInt, who, role, direction, value, plan10b5,
       filed: recent.filingDate[i],
       accession: recent.accessionNumber[i],
       doc: docUrl,
@@ -645,7 +671,16 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (url.pathname === "/api/health") {
-      return send(res, 200, { ok: true, time: new Date().toISOString(), fmp: !!FMP_KEY, av: !!AV_KEY, td: !!TD_KEY });
+      return send(res, 200, {
+        ok: true, time: new Date().toISOString(),
+        fmp: !!FMP_KEY, av: !!AV_KEY, td: !!TD_KEY,
+        pxCached: _pxCache.size,
+        caches: {
+          regime: !!_regimeCache.data,
+          macro: !!_macroCache.data,
+          f13: !!_13fCache.data,
+        },
+      });
     }
 
     if (url.pathname === "/api/insiders") {
@@ -692,8 +727,11 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/prices") {
       const ticker = url.searchParams.get("ticker") || "COIN";
       const days = parseInt(url.searchParams.get("days") || "0", 10) || null;
-      const bars = await fetchPrices(ticker, days);
-      return send(res, 200, { source: "Stooq daily OHLC", ticker: ticker.toUpperCase(), count: bars.length, data: bars });
+      const bars = await fetchPricesCached(ticker, days);
+      const sourceLabel = TD_KEY ? "Twelve Data" : AV_KEY ? "Alpha Vantage" : "Yahoo Finance / Stooq";
+      const cached = _pxCache.get(`${ticker}:${days || 0}`);
+      const cacheAge = cached ? Math.round((Date.now() - cached.at) / 1000) : 0;
+      return send(res, 200, { source: sourceLabel, ticker: ticker.toUpperCase(), count: bars.length, cacheAgeSecs: cacheAge, data: bars });
     }
 
     return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/regime", "/api/macro", "/api/news", "/api/prices", "/api/health"] });
