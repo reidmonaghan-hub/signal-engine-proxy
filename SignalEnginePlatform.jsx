@@ -58,11 +58,13 @@ const WATCHLIST = [
   { ticker: "V",    name: "Visa",          thesis: "tokenisation", type: "equity" },
   { ticker: "MA",   name: "Mastercard",    thesis: "tokenisation", type: "equity" },
   { ticker: "PYPL", name: "PayPal",        thesis: "tokenisation", type: "equity" },
+  { ticker: "SQ",   name: "Block Inc",     thesis: "tokenisation", type: "equity" }, // on-chain payment rails + BTC treasury
   // ── AI / ROTATION (equities) ───────────────────────────────────────────
   { ticker: "NVDA", name: "Nvidia",        thesis: "rotation",     type: "equity" },
   { ticker: "AMD",  name: "AMD",           thesis: "rotation",     type: "equity" },
   { ticker: "AVGO", name: "Broadcom",      thesis: "rotation",     type: "equity" },
   { ticker: "MU",   name: "Micron",        thesis: "rotation",     type: "equity" },
+  { ticker: "PLTR", name: "Palantir",      thesis: "rotation",     type: "equity" }, // AI data monetisation
   // ── BITCOIN-ADJACENT (equities — heavy insider activity, high beta) ────
   { ticker: "MSTR", name: "MicroStrategy", thesis: "crypto",       type: "equity" },
   { ticker: "MARA", name: "Marathon",      thesis: "crypto",       type: "equity" },
@@ -1187,7 +1189,7 @@ export default function SignalEnginePlatform() {
 
         {/* ========================= BACKTEST / MACRO / JOURNAL ========================= */}
         {tab === "macro" && <MacroView macroData={macroData} newsData={newsData} newsError={newsError} liveStatus={liveStatus} />}
-        {tab === "brief" && <BriefView briefingData={briefingData} />}
+        {tab === "brief" && <BriefView briefingData={briefingData} setTab={setTab} setLogTicker={setLogTicker} setJournal={setJournal} />}
         {tab === "backtest" && <BacktestView />}
         {tab === "journal" && <TradeJournalView journal={journal} setJournal={setJournal} logTicker={logTicker} setLogTicker={setLogTicker} clusterAlerts={clusterAlerts} autoLog={autoLog} setAutoLog={setAutoLog} />}
 
@@ -1202,7 +1204,7 @@ export default function SignalEnginePlatform() {
 }
 
 // ---------- EXPERT BRIEF VIEW ----------
-function BriefView({ briefingData }) {
+function BriefView({ briefingData, setTab, setLogTicker, setJournal }) {
   if (!briefingData || !briefingData.experts?.length) {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1215,7 +1217,7 @@ function BriefView({ briefingData }) {
     );
   }
 
-  const { experts, guestExperts = [], sections = [], thesisEffects = [], actionItems = [], generatedAt, nextBriefing, weekLabel, nextInviteNote } = briefingData;
+  const { experts, guestExperts = [], sections = [], thesisEffects = [], actionItems = [], generatedAt, nextBriefing, weekLabel, nextInviteNote, pulse = [] } = briefingData;
   const allExperts = [...experts, ...guestExperts];
   const expertById = Object.fromEntries(allExperts.map((e) => [e.id, e]));
 
@@ -1233,6 +1235,30 @@ function BriefView({ briefingData }) {
 
   const ACTION_ICON = (type) => type === "watch" ? <Eye size={11} /> : <FileText size={11} />;
   const ACTION_COL = (type) => type === "watch" ? C.amber : C.blue;
+
+  const logActionItem = (item) => {
+    const thesis = item.ticker ? (WATCHLIST.find((w) => w.ticker === item.ticker)?.thesis || "") : "";
+    const entry = {
+      id: Date.now() + Math.random(),
+      ticker: item.ticker || "",
+      thesis,
+      hypothesis: `BRIEF — ${item.text}`,
+      entry: null,
+      stop: null,
+      size: null,
+      invalidation: "Check EDGAR for confirming signals before sizing. Not financial advice.",
+      opened: new Date().toISOString(),
+      status: "open",
+      result: null,
+      closedAt: null,
+      notes: "",
+      autoLogged: false,
+      doc: null,
+    };
+    setJournal((prev) => [entry, ...prev]);
+    setLogTicker(item.ticker || "");
+    setTab("journal");
+  };
 
   const genDate = generatedAt ? new Date(generatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null;
   const nextDate = nextBriefing ? new Date(nextBriefing).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : null;
@@ -1266,6 +1292,24 @@ function BriefView({ briefingData }) {
           </div>
         )}
       </section>
+
+      {/* LIVE PULSE — refreshes with proxy data; sits above the weekly roundtable */}
+      {pulse.length > 0 && (
+        <section style={{ background: `${C.blue}0D`, border: `1px solid ${C.blue}33`, borderRadius: 8, padding: "12px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 9 }}>
+            <Activity size={12} color={C.blue} />
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.4, color: C.blue, fontFamily: mono }}>THIS WEEK'S PULSE</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {pulse.map((p, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.blue, flexShrink: 0, marginTop: 5 }} />
+                <div style={{ fontSize: 12, color: C.inkDim, lineHeight: 1.55 }}>{p}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* DISCUSSION */}
       {sections.map((sec, si) => (
@@ -1330,9 +1374,15 @@ function BriefView({ briefingData }) {
           </div>
           <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
             {actionItems.map((a, i) => (
-              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", paddingBottom: i < actionItems.length - 1 ? 8 : 0, borderBottom: i < actionItems.length - 1 ? `1px solid ${C.line}` : "none" }}>
                 <div style={{ width: 20, height: 20, borderRadius: 4, background: `${ACTION_COL(a.type)}18`, border: `1px solid ${ACTION_COL(a.type)}44`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, color: ACTION_COL(a.type) }}>{ACTION_ICON(a.type)}</div>
-                <div style={{ fontSize: 12, color: C.inkDim, lineHeight: 1.55, flex: 1 }}>{a.text}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: C.inkDim, lineHeight: 1.55 }}>{a.text}</div>
+                  {a.ticker && <div style={{ fontSize: 10, color: C.inkFaint, marginTop: 3, fontFamily: mono }}>{a.ticker}</div>}
+                </div>
+                <button onClick={() => logActionItem(a)} title="Log as hypothesis in Journal" style={{ cursor: "pointer", background: `${C.violet}15`, border: `1px solid ${C.violet}44`, color: C.violet, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.8, padding: "3px 9px", borderRadius: 4, fontFamily: mono, flexShrink: 0, whiteSpace: "nowrap" }}>
+                  + JOURNAL
+                </button>
               </div>
             ))}
           </div>
