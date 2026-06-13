@@ -494,7 +494,50 @@ async function fetchPrices(ticker, days) {
   if (TD_KEY) return fetchPricesTD(ticker, days);           // 800 req/day free — preferred
   if (AV_KEY) return fetchPricesAV(ticker, days);           // 25 req/day — fallback
   try { return await fetchPricesYahoo(ticker, days); } catch (e) { /* fall through */ }
-  return fetchPricesStooq(ticker, days);                     // last resort
+  // Skip Stooq for crypto pairs (BTC-USD etc.) — Stooq can't handle them
+  if (!ticker.includes("-")) return fetchPricesStooq(ticker, days); // last resort for equities
+  throw new Error(`No price data available for ${ticker}`);
+}
+
+// ---- GBP CONVERSION -------------------------------------------------------
+// Cache GBP/USD rate (1-hour TTL). GBPUSD=X on Yahoo Finance = USD per 1 GBP.
+let _fxCache = { at: 0, rate: null };
+const FX_TTL = 60 * 60 * 1000;
+
+async function getGBPRate() {
+  if (_fxCache.rate && Date.now() - _fxCache.at < FX_TTL) return _fxCache.rate;
+  const bars = await fetchPricesYahoo("GBPUSD=X", 3);
+  const rate = bars[bars.length - 1]?.close;
+  if (!rate) throw new Error("Could not fetch GBP/USD rate");
+  _fxCache = { at: Date.now(), rate };
+  return rate;
+}
+
+// Returns { bars, currency } with prices in GBP.
+// For crypto USD pairs (BTC-USD, ETH-USD etc.) we swap to the native GBP pair
+// (BTC-GBP) which Yahoo Finance carries directly — avoids an extra conversion step.
+// For US equities/ETFs we fetch in USD and divide by the live GBPUSD rate.
+async function fetchPricesInGBP(ticker, days) {
+  const up = ticker.toUpperCase();
+  if (up.endsWith("-USD")) {
+    const gbpTicker = up.replace("-USD", "-GBP");
+    try {
+      const bars = await fetchPricesYahoo(gbpTicker, days);
+      return { bars, currency: "GBP", fxRate: null };
+    } catch (e) { /* fall through to conversion */ }
+  }
+  // Fetch USD price and live GBPUSD rate in parallel
+  const [bars, rate] = await Promise.all([
+    fetchPricesCached(ticker, days),
+    getGBPRate(),
+  ]);
+  // rate = USD per 1 GBP (e.g. 1.27), so: GBP_price = USD_price / rate
+  const toGBP = (v) => (v != null ? +(v / rate).toFixed(4) : null);
+  return {
+    bars: bars.map((b) => ({ ...b, open: toGBP(b.open), high: toGBP(b.high), low: toGBP(b.low), close: toGBP(b.close) })),
+    currency: "GBP",
+    fxRate: rate,
+  };
 }
 
 // ---- REGIME WARNING LIGHTS (free macro series) -----------------------------
@@ -955,11 +998,16 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/prices") {
       const ticker = url.searchParams.get("ticker") || "COIN";
       const days = parseInt(url.searchParams.get("days") || "0", 10) || null;
-      const bars = await fetchPricesCached(ticker, days);
+      const currency = (url.searchParams.get("currency") || "USD").toUpperCase();
       const sourceLabel = TD_KEY ? "Twelve Data" : AV_KEY ? "Alpha Vantage" : "Yahoo Finance / Stooq";
+      if (currency === "GBP") {
+        const { bars, fxRate } = await fetchPricesInGBP(ticker, days);
+        return send(res, 200, { source: sourceLabel, ticker: ticker.toUpperCase(), count: bars.length, currency: "GBP", fxRate, data: bars });
+      }
+      const bars = await fetchPricesCached(ticker, days);
       const cached = _pxCache.get(`${ticker}:${days || 0}`);
       const cacheAge = cached ? Math.round((Date.now() - cached.at) / 1000) : 0;
-      return send(res, 200, { source: sourceLabel, ticker: ticker.toUpperCase(), count: bars.length, cacheAgeSecs: cacheAge, data: bars });
+      return send(res, 200, { source: sourceLabel, ticker: ticker.toUpperCase(), count: bars.length, currency: "USD", cacheAgeSecs: cacheAge, data: bars });
     }
 
     return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/activist", "/api/regime", "/api/macro", "/api/news", "/api/prices", "/api/briefing", "/api/health"] });
