@@ -721,6 +721,103 @@ async function fetchNews() {
   return data;
 }
 
+// ---- 13D/13G ACTIVIST / SIGNIFICANT HOLDER FILINGS -------------------------
+/**
+ * When anyone acquires 5%+ of a public company's shares they must file on EDGAR:
+ *   SC 13D  — filed WITH activist intent (wants to influence management). Strong signal.
+ *   SC 13G  — filed as PASSIVE holder (index fund, long-term accumulator). Moderate signal.
+ *   /A amendments — material changes to a prior filing (position change, increased stake).
+ *
+ * We use EDGAR's full-text search (EFTS) to find recent 13D/13G filings mentioning
+ * each watchlist company by name. These are public filings and entirely free.
+ *
+ * HONEST LIMITS: 5%+ threshold means many significant builds happen below the radar
+ * until the position is large. Like Form 4 data, this is regime confirmation —
+ * evidence that serious money has already accumulated, not that it's accumulating now.
+ */
+const ACTIVIST_MAP = [
+  { ticker: "COIN",  name: "Coinbase" },
+  { ticker: "HOOD",  name: "Robinhood" },
+  { ticker: "NDAQ",  name: "Nasdaq" },
+  { ticker: "ICE",   name: "Intercontinental Exchange" },
+  { ticker: "CME",   name: "CME Group" },
+  { ticker: "BLK",   name: "BlackRock" },
+  { ticker: "BK",    name: "BNY Mellon" },
+  { ticker: "CRCL",  name: "Circle" },
+  { ticker: "CBOE",  name: "Cboe" },
+  { ticker: "MKTX",  name: "MarketAxess" },
+  { ticker: "V",     name: "Visa" },
+  { ticker: "MA",    name: "Mastercard" },
+  { ticker: "PYPL",  name: "PayPal" },
+  { ticker: "NVDA",  name: "Nvidia" },
+  { ticker: "AMD",   name: "Advanced Micro Devices" },
+  { ticker: "AVGO",  name: "Broadcom" },
+  { ticker: "MU",    name: "Micron Technology" },
+  { ticker: "MSTR",  name: "MicroStrategy" },
+  { ticker: "MARA",  name: "Marathon Digital" },
+  { ticker: "RIOT",  name: "Riot Platforms" },
+];
+
+let _activistCache = { at: 0, data: null };
+const ACTIVIST_TTL = 2 * 60 * 60 * 1000; // 2 hours — these filings are rare, no need to hammer EDGAR
+
+async function fetchActivist() {
+  if (_activistCache.data && Date.now() - _activistCache.at < ACTIVIST_TTL) return _activistCache.data;
+
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 6);
+  const startDate = cutoff.toISOString().split("T")[0];
+  const results = [];
+
+  for (const { ticker, name } of ACTIVIST_MAP) {
+    try {
+      const q = encodeURIComponent(`"${name}"`);
+      const forms = "SC+13D%2CSC+13G%2CSC+13D%2FA%2CSC+13G%2FA";
+      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=${forms}&dateRange=custom&startdt=${startDate}`;
+      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const data = await r.json();
+      const hits = data.hits?.hits || [];
+      for (const hit of hits.slice(0, 4)) {
+        const s = hit._source || {};
+        const formType = s.form_type || "";
+        const isActivist = /13D/.test(formType);
+        const isAmendment = formType.includes("/A");
+        // The filer is the entity that submitted — pull from display_names or entity_name
+        const filer = s.display_names?.[0]?.name || s.entity_name || "Unknown";
+        results.push({
+          ticker,
+          company: name,
+          filer,
+          formType,
+          isActivist,
+          isAmendment,
+          date: s.file_date || null,
+          accession: s.accession_no || null,
+        });
+      }
+    } catch (e) { /* skip — EDGAR hiccup or timeout */ }
+    await sleep(200); // respect EDGAR rate limits between company searches
+  }
+
+  // Sort: activist (13D) before passive (13G), then by date desc
+  results.sort((a, b) => {
+    if (a.isActivist !== b.isActivist) return a.isActivist ? -1 : 1;
+    return (b.date || "").localeCompare(a.date || "");
+  });
+
+  const data = {
+    source: "SEC EDGAR SC 13D / SC 13G",
+    note: "13D = activist (5%+ with intent to influence). 13G = passive holder (5%+ accumulation). Both require a public filing within 10 days of crossing the threshold.",
+    lagNote: "10-day filing window after crossing 5% threshold.",
+    count: results.length,
+    data: results,
+  };
+
+  if (results.length > 0) _activistCache = { at: Date.now(), data };
+  return data;
+}
+
 // ---- ROUTER ---------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") { cors(res); res.writeHead(204); return res.end(); }
@@ -757,12 +854,13 @@ const server = http.createServer(async (req, res) => {
         ok: true, time: new Date().toISOString(),
         fmp: !!FMP_KEY, av: !!AV_KEY, td: !!TD_KEY,
         caches: {
-          insiders: _insiderCache.size,   // per-ticker cached event sets
+          insiders: _insiderCache.size,
           congress: !!_congressCache.data,
           f13: !!_13fCache.data,
           regime: !!_regimeCache.data,
           macro: !!_macroCache.data,
           prices: _pxCache.size,
+          activist: !!_activistCache.data,
         },
       });
     }
@@ -813,6 +911,10 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, payload);
     }
 
+    if (url.pathname === "/api/activist") {
+      return send(res, 200, await fetchActivist());
+    }
+
     if (url.pathname === "/api/prices") {
       const ticker = url.searchParams.get("ticker") || "COIN";
       const days = parseInt(url.searchParams.get("days") || "0", 10) || null;
@@ -823,7 +925,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { source: sourceLabel, ticker: ticker.toUpperCase(), count: bars.length, cacheAgeSecs: cacheAge, data: bars });
     }
 
-    return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/regime", "/api/macro", "/api/news", "/api/prices", "/api/health"] });
+    return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/activist", "/api/regime", "/api/macro", "/api/news", "/api/prices", "/api/health"] });
   } catch (err) {
     return send(res, 500, { error: String(err.message || err) });
   }
