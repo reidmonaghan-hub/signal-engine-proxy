@@ -37,9 +37,11 @@ const PORT = process.env.PORT || 8787;
 const SEC_UA = process.env.SEC_UA || "SignalEngine/1.0 (your-email@example.com)";
 // Optional: free key from financialmodelingprep.com for House + richer Senate.
 const FMP_KEY = process.env.FMP_KEY || "";
-// Optional: free key from alphavantage.co for reliable daily price history.
-// Without it we try Yahoo Finance then Stooq; those may be blocked on Render.
+// Optional: free key from alphavantage.co (25 req/day — low, kept as fallback).
 const AV_KEY = process.env.AV_KEY || "";
+// Preferred price source: free key from twelvedata.com (800 req/day free).
+// Sign up at twelvedata.com, add TD_KEY env var on Render.
+const TD_KEY = process.env.TD_KEY || "";
 
 // Fallback ticker -> CIK map, used only if SEC's live directory is unreachable.
 // Normally CIKs resolve automatically from company_tickers.json (see below),
@@ -385,8 +387,26 @@ async function fetchPricesAV(ticker, days) {
   return days ? bars.slice(-days) : bars;
 }
 
+async function fetchPricesTD(ticker, days) {
+  if (!TD_KEY) throw new Error("no TD_KEY");
+  const size = Math.min(days || 400, 400);
+  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(ticker)}&interval=1day&outputsize=${size}&apikey=${TD_KEY}`;
+  const r = await fetch(url, { headers: { "User-Agent": SEC_UA } });
+  if (!r.ok) throw new Error(`TwelveData ${r.status}`);
+  const j = await r.json();
+  if (j.status === "error") throw new Error(`TwelveData: ${j.message}`);
+  const values = j.values;
+  if (!values?.length) throw new Error("TwelveData: no data for " + ticker);
+  const bars = values
+    .map((v) => ({ date: v.datetime.slice(0, 10), open: +v.open, high: +v.high, low: +v.low, close: +v.close, volume: +(v.volume || 0) }))
+    .filter((b) => b.close > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return bars;
+}
+
 async function fetchPrices(ticker, days) {
-  if (AV_KEY) return fetchPricesAV(ticker, days);           // preferred: reliable, free key
+  if (TD_KEY) return fetchPricesTD(ticker, days);           // 800 req/day free — preferred
+  if (AV_KEY) return fetchPricesAV(ticker, days);           // 25 req/day — fallback
   try { return await fetchPricesYahoo(ticker, days); } catch (e) { /* fall through */ }
   return fetchPricesStooq(ticker, days);                     // last resort
 }
@@ -625,7 +645,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (url.pathname === "/api/health") {
-      return send(res, 200, { ok: true, time: new Date().toISOString(), fmp: !!FMP_KEY, av: !!AV_KEY });
+      return send(res, 200, { ok: true, time: new Date().toISOString(), fmp: !!FMP_KEY, av: !!AV_KEY, td: !!TD_KEY });
     }
 
     if (url.pathname === "/api/insiders") {
