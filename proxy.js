@@ -764,45 +764,76 @@ const ACTIVIST_TTL = 2 * 60 * 60 * 1000; // 2 hours — these filings are rare, 
 async function fetchActivist() {
   if (_activistCache.data && Date.now() - _activistCache.at < ACTIVIST_TTL) return _activistCache.data;
 
-  const cutoff = new Date();
-  cutoff.setMonth(cutoff.getMonth() - 6);
-  const startDate = cutoff.toISOString().split("T")[0];
+  // Client-side date cutoff: only last 12 months (EFTS dateRange param is unreliable)
+  const cutoffDate = new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString().split("T")[0];
   const results = [];
+
+  // Cache filer name lookups (CIK → name) to avoid repeat calls
+  const filerCache = new Map();
+  async function getFilerName(accessionNo) {
+    // Accession format: XXXXXXXXXX-YY-NNNNNN — first 10 digits are the filer's CIK
+    const cik = (accessionNo || "").replace(/-/g, "").slice(0, 10);
+    if (!cik || cik === "0000000000") return "Unknown";
+    if (filerCache.has(cik)) return filerCache.get(cik);
+    try {
+      const r = await fetch(`https://data.sec.gov/submissions/CIK${cik}.json`, { headers: { "User-Agent": SEC_UA }, signal: AbortSignal.timeout(5000) });
+      if (!r.ok) return "Unknown";
+      const j = await r.json();
+      const n = j.name || "Unknown";
+      filerCache.set(cik, n);
+      return n;
+    } catch { return "Unknown"; }
+  }
 
   for (const { ticker, name } of ACTIVIST_MAP) {
     try {
       const q = encodeURIComponent(`"${name}"`);
-      const forms = "SC+13D%2CSC+13G%2CSC+13D%2FA%2CSC+13G%2FA";
-      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=${forms}&dateRange=custom&startdt=${startDate}`;
-      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(8000) });
+      // %20 for space in form type — EFTS requires this encoding; comma-separate form types
+      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC%2013D,SC%2013G,SC%2013D%2FA,SC%2013G%2FA`;
+      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(10000) });
       if (!r.ok) continue;
       const data = await r.json();
       const hits = data.hits?.hits || [];
-      for (const hit of hits.slice(0, 4)) {
+
+      for (const hit of hits.slice(0, 8)) {
         const s = hit._source || {};
-        const formType = s.form_type || "";
+        // EFTS field names vary — try all known variants
+        const fileDate = s.file_date || s.fileDate || s.period_of_report || null;
+        // Client-side recency filter
+        if (!fileDate || fileDate < cutoffDate) continue;
+
+        const formType = s.form_type || s.formType || s.type || "";
+        const accession = s.accession_no || s.accessionNumber || hit._id || "";
+        // Filer name: try source fields first, fall back to CIK lookup from accession
+        let filer = s.display_names?.[0]?.name || s.entity_name || s.entityName || null;
+        if (!filer && accession) {
+          await sleep(150);
+          filer = await getFilerName(accession);
+        }
+
         const isActivist = /13D/.test(formType);
-        const isAmendment = formType.includes("/A");
-        // The filer is the entity that submitted — pull from display_names or entity_name
-        const filer = s.display_names?.[0]?.name || s.entity_name || "Unknown";
+        const isAmendment = /\/A$/.test(formType);
+
         results.push({
           ticker,
           company: name,
-          filer,
-          formType,
+          filer: filer || "Unknown",
+          formType: formType || "SC 13D/13G",
           isActivist,
           isAmendment,
-          date: s.file_date || null,
-          accession: s.accession_no || null,
+          date: fileDate,
+          accession: accession || null,
         });
       }
     } catch (e) { /* skip — EDGAR hiccup or timeout */ }
-    await sleep(200); // respect EDGAR rate limits between company searches
+    await sleep(300);
   }
 
-  // Sort: activist (13D) before passive (13G), then by date desc
+  // Sort: new 13D (activist) first, then new 13G, then amendments, then by date
   results.sort((a, b) => {
-    if (a.isActivist !== b.isActivist) return a.isActivist ? -1 : 1;
+    const rankA = a.isActivist && !a.isAmendment ? 0 : !a.isActivist && !a.isAmendment ? 1 : 2;
+    const rankB = b.isActivist && !b.isAmendment ? 0 : !b.isActivist && !b.isAmendment ? 1 : 2;
+    if (rankA !== rankB) return rankA - rankB;
     return (b.date || "").localeCompare(a.date || "");
   });
 
