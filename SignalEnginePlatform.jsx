@@ -31,23 +31,63 @@ const CONF = { high: { label: "HIGH", c: C.green }, medium: { label: "MEDIUM", c
 const PROXY_URL = "https://signal-engine-proxy.onrender.com"; // live proxy on Render — set "" for snapshot mode
 const REFRESH_MS = 120000; // auto-refresh cadence (live mode); 12 names = ~15-25s of EDGAR calls per sync, so be kind
 
-// The proxy resolves any listed US ticker automatically (SEC directory) —
-// adding a name here is all it takes. More names = longer sync + more to
-// verify by hand; keep it to what you'll actually read.
+// WATCHLIST — five tiers, each with different data availability:
+//   equity   → Form 4 insiders + congress + 13F + price (full intelligence)
+//   etf      → 13F (institutions hold ETFs) + price — no insider Form 4s
+//   leveraged→ price only — flagged in UI; monitor for momentum extremes only
+//              (per HOUSE_RULES: leverage stays OFF — these are in here to read
+//              the crowd, not to hold. Never size into a leveraged fund.)
+//   macro    → price only — regime reads (gold, bonds, dollar)
+//
+// Insider sync (EDGAR) is equity-only to respect rate limits.
+// Add any listed US ticker: proxy resolves CIK automatically.
 const WATCHLIST = [
-  { ticker: "COIN", cik: "0001679788", name: "Coinbase",  thesis: "tokenisation" },
-  { ticker: "HOOD", cik: "0001783879", name: "Robinhood", thesis: "tokenisation" },
-  { ticker: "NDAQ", cik: "0001120193", name: "Nasdaq",    thesis: "tokenisation" },
-  { ticker: "CME",  cik: "auto", name: "CME Group",     thesis: "tokenisation" },
-  { ticker: "BLK",  cik: "auto", name: "BlackRock",     thesis: "tokenisation" },
-  { ticker: "BK",   cik: "auto", name: "BNY Mellon",    thesis: "tokenisation" },
-  { ticker: "CRCL", cik: "auto", name: "Circle",        thesis: "tokenisation" },
-  { ticker: "AMD",  cik: "auto", name: "AMD",           thesis: "rotation" },
-  { ticker: "AVGO", cik: "auto", name: "Broadcom",      thesis: "rotation" },
-  { ticker: "ICE",  cik: "0001571949", name: "ICE",       thesis: "tokenisation" },
-  { ticker: "NVDA", cik: "0001045810", name: "Nvidia",    thesis: "rotation" },
-  { ticker: "MU",   cik: "0000723125", name: "Micron",    thesis: "rotation" },
+  // ── TOKENISATION CORE (equities, full data) ────────────────────────────
+  { ticker: "COIN", name: "Coinbase",      thesis: "tokenisation", type: "equity" },
+  { ticker: "HOOD", name: "Robinhood",     thesis: "tokenisation", type: "equity" },
+  { ticker: "NDAQ", name: "Nasdaq",        thesis: "tokenisation", type: "equity" },
+  { ticker: "ICE",  name: "ICE",           thesis: "tokenisation", type: "equity" },
+  { ticker: "CME",  name: "CME Group",     thesis: "tokenisation", type: "equity" },
+  { ticker: "BLK",  name: "BlackRock",     thesis: "tokenisation", type: "equity" },
+  { ticker: "BK",   name: "BNY Mellon",    thesis: "tokenisation", type: "equity" },
+  { ticker: "CRCL", name: "Circle",        thesis: "tokenisation", type: "equity" },
+  { ticker: "CBOE", name: "Cboe Global",   thesis: "tokenisation", type: "equity" },
+  { ticker: "MKTX", name: "MarketAxess",   thesis: "tokenisation", type: "equity" },
+  // ── PAYMENT RAILS (equities — tokenisation disrupts or transforms these) ─
+  { ticker: "V",    name: "Visa",          thesis: "tokenisation", type: "equity" },
+  { ticker: "MA",   name: "Mastercard",    thesis: "tokenisation", type: "equity" },
+  { ticker: "PYPL", name: "PayPal",        thesis: "tokenisation", type: "equity" },
+  // ── AI / ROTATION (equities) ───────────────────────────────────────────
+  { ticker: "NVDA", name: "Nvidia",        thesis: "rotation",     type: "equity" },
+  { ticker: "AMD",  name: "AMD",           thesis: "rotation",     type: "equity" },
+  { ticker: "AVGO", name: "Broadcom",      thesis: "rotation",     type: "equity" },
+  { ticker: "MU",   name: "Micron",        thesis: "rotation",     type: "equity" },
+  // ── BITCOIN-ADJACENT (equities — heavy insider activity, high beta) ────
+  { ticker: "MSTR", name: "MicroStrategy", thesis: "crypto",       type: "equity" },
+  { ticker: "MARA", name: "Marathon",      thesis: "crypto",       type: "equity" },
+  { ticker: "RIOT", name: "Riot Platforms",thesis: "crypto",       type: "equity" },
+  // ── CRYPTO / TOKENISATION ETFs (price + 13F, no insider Form 4s) ──────
+  { ticker: "IBIT", name: "BlackRock Bitcoin ETF", thesis: "crypto", type: "etf" },
+  { ticker: "FBTC", name: "Fidelity Bitcoin ETF",  thesis: "crypto", type: "etf" },
+  { ticker: "BKCH", name: "Blockchain ETF",        thesis: "tokenisation", type: "etf" },
+  { ticker: "BLOK", name: "Transformational Data", thesis: "tokenisation", type: "etf" },
+  // ── SEMICONDUCTOR / AI ETFs ────────────────────────────────────────────
+  { ticker: "SOXX", name: "Semiconductor ETF",     thesis: "rotation", type: "etf" },
+  { ticker: "SMH",  name: "Semi ETF (VanEck)",     thesis: "rotation", type: "etf" },
+  // ── MACRO HEDGES (price, regime reads) ────────────────────────────────
+  { ticker: "GLD",  name: "Gold ETF",              thesis: "macro",    type: "macro" },
+  { ticker: "TLT",  name: "Long Bond ETF",         thesis: "macro",    type: "macro" },
+  { ticker: "UUP",  name: "Dollar ETF",            thesis: "macro",    type: "macro" },
+  // ── LEVERAGED (monitor only — crowd/momentum signal, NOT for holding) ──
+  { ticker: "SOXL", name: "3× Semiconductor",      thesis: "rotation", type: "leveraged" },
+  { ticker: "BITX", name: "2× Bitcoin Strategy",   thesis: "crypto",   type: "leveraged" },
+  { ticker: "NVDL", name: "2× Nvidia",             thesis: "rotation", type: "leveraged" },
 ];
+
+// Derived sub-lists used by different API calls
+const EQUITY_TICKERS  = WATCHLIST.filter((w) => w.type === "equity").map((w) => w.ticker);
+const ETF_TICKERS     = WATCHLIST.filter((w) => w.type === "etf" || w.type === "macro").map((w) => w.ticker);
+const ALL_TICKERS     = WATCHLIST.map((w) => w.ticker);
 
 // ---------- SEED / SNAPSHOT DATA (June 2026 picture) ----------
 const SEED_THESES = [
@@ -155,7 +195,7 @@ function daysAgo(d) { const diff = Math.floor((Date.now() - new Date(d).getTime(
 
 async function fetchLiveInsiders() {
   if (!PROXY_URL) throw new Error("no proxy configured");
-  const tickers = WATCHLIST.map((w) => w.ticker).join(",");
+  const tickers = EQUITY_TICKERS.join(","); // equities only — ETFs have no Form 4 insiders
   const r = await fetch(`${PROXY_URL}/api/insiders?tickers=${tickers}`);
   if (!r.ok) throw new Error(`proxy ${r.status}`);
   const j = await r.json();
@@ -165,7 +205,7 @@ async function fetchLiveInsiders() {
 
 async function fetchLive13F() {
   if (!PROXY_URL) throw new Error("no proxy configured");
-  const tickers = WATCHLIST.map((w) => w.ticker).join(",");
+  const tickers = ALL_TICKERS.join(","); // institutions hold ETFs too
   const r = await fetch(`${PROXY_URL}/api/13f?tickers=${tickers}`);
   if (!r.ok) throw new Error(`proxy ${r.status}`);
   const j = await r.json();
@@ -581,6 +621,32 @@ export default function SignalEnginePlatform() {
         {/* ========================= INTELLIGENCE ========================= */}
         {tab === "intel" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* WATCHLIST OVERVIEW — 32 names, type-coded */}
+            <section style={{ background: C.panel, border: `1px solid ${C.line}`, borderRadius: 10, padding: "14px 18px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <ListChecks size={13} color={C.inkFaint} />
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, color: C.inkDim, fontFamily: mono }}>WATCHLIST — {WATCHLIST.length} NAMES</span>
+                <div style={{ marginLeft: "auto", display: "flex", gap: 10, fontSize: 9, color: C.inkFaint }}>
+                  {[["equity","EQUITY",C.green],["etf","ETF",C.blue],["macro","MACRO",C.violet],["leveraged","LEVGD ⚠",C.red]].map(([t,l,c])=>(
+                    <span key={t} style={{ display:"flex",alignItems:"center",gap:4 }}><span style={{width:6,height:6,borderRadius:3,background:c,display:"inline-block"}}/>{ l}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {WATCHLIST.map((w) => {
+                  const col = w.type === "equity" ? C.green : w.type === "etf" ? C.blue : w.type === "macro" ? C.violet : C.red;
+                  return (
+                    <div key={w.ticker} title={`${w.name} · ${w.type} · ${w.thesis}`} style={{ border: `1px solid ${col}44`, background: `${col}10`, borderRadius: 5, padding: "3px 9px", display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, fontFamily: mono, color: C.ink }}>{w.ticker}</span>
+                      {w.type === "leveraged" && <span style={{ fontSize: 9, color: C.red, fontWeight: 700 }}>⚠</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 10, color: C.inkFaint }}>
+                <span style={{ color: C.green }}>Equity</span>: full intelligence (Form 4, congress, 13F, price). <span style={{ color: C.blue }}>ETF</span>: 13F + price. <span style={{ color: C.violet }}>Macro</span>: price / regime. <span style={{ color: C.red }}>Leveraged ⚠</span>: price only — crowd/momentum reads, <strong style={{ color: C.red }}>not for holding</strong>.
+              </div>
+            </section>
             <Panel title="Live Theses" icon={Target} accent={C.amber} right={<span style={{ fontSize: 10, color: C.inkFaint, fontFamily: mono }}>{SEED_THESES.length} ACTIVE</span>}>
               <div className="grid3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
                 {SEED_THESES.map((t) => {
@@ -961,8 +1027,8 @@ function BacktestView() {
         {PROXY_URL && (
           <div><div style={{ fontSize: 9, color: C.inkFaint, letterSpacing: 1.2, marginBottom: 5 }}>REAL PRICES (PROXY)</div>
             <div style={{ display: "flex", gap: 5 }}>
-              {["COIN", "HOOD", "NDAQ"].map((tk) => (
-                <button key={tk} onClick={() => loadReal(tk)} disabled={loadingReal} style={{ cursor: "pointer", padding: "7px 10px", fontSize: 10.5, fontWeight: 700, fontFamily: mono, background: realTicker === tk ? `${C.green}22` : "transparent", color: realTicker === tk ? C.green : C.inkDim, border: `1px solid ${realTicker === tk ? C.green + "55" : C.line}`, borderRadius: 5 }}>{tk}</button>
+              {ALL_TICKERS.map((tk) => (
+                <button key={tk} onClick={() => loadReal(tk)} disabled={loadingReal} style={{ cursor: "pointer", padding: "5px 9px", fontSize: 10, fontWeight: 700, fontFamily: mono, background: realTicker === tk ? `${C.green}22` : "transparent", color: realTicker === tk ? C.green : C.inkDim, border: `1px solid ${realTicker === tk ? C.green + "55" : C.line}`, borderRadius: 5 }}>{tk}</button>
               ))}
               {realBars && <button onClick={() => { setRealBars(null); setRealTicker(""); }} style={{ cursor: "pointer", padding: "7px 10px", fontSize: 10.5, color: C.inkFaint, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 5 }}>synthetic</button>}
             </div>
