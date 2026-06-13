@@ -421,6 +421,153 @@ async function fetchRegime() {
   return data;
 }
 
+// ---- MACRO INTELLIGENCE: LIQUIDITY CYCLE + DOLLAR (Alden/Zulauf framework) -
+/**
+ * Lyn Alden's core insight: the single most important macro variable is whether
+ * global liquidity (primarily US M2 + Fed balance sheet) is expanding or
+ * contracting. When liquidity expands, risk assets across the board rise —
+ * the tide lifts boats. When it contracts, correlation goes to 1 on the downside.
+ *
+ * Felix Zulauf adds: watch the dollar (DXY) as a liquidity multiplier — a
+ * falling dollar loosens global financial conditions (EM and commodities benefit);
+ * a rising dollar tightens them (dollar-debt stress, credit events).
+ *
+ * Series:
+ *   WALCL  — Fed balance sheet (weekly, FRED)
+ *   M2SL   — M2 money supply (monthly, FRED)
+ *   DTWEXBGS — trade-weighted dollar index (FRED, more comprehensive than DXY)
+ *   T10Y2Y — already in regime route, surfaced here in Alden framing too
+ */
+let _macroCache = { at: 0, data: null };
+
+async function fredLatestTwo(id) {
+  const rows = await fredSeries(id);
+  return { latest: rows[rows.length - 1], prior: rows[rows.length - 2], prior3m: rows[Math.max(0, rows.length - 13)] };
+}
+
+async function fetchMacro() {
+  if (_macroCache.data && Date.now() - _macroCache.at < 3600 * 1000) return _macroCache.data;
+  const indicators = [];
+
+  // Fed balance sheet — the primary liquidity spigot
+  try {
+    const { latest, prior } = await fredLatestTwo("WALCL");
+    const chgB = ((latest.v - prior.v) / 1e6).toFixed(2); // billions
+    const trend = latest.v > prior.v ? "EXPANDING" : "CONTRACTING";
+    indicators.push({
+      id: "fed_bs", label: "Fed Balance Sheet", value: `$${(latest.v / 1e6).toFixed(1)}T`,
+      trend, chg: `${chgB >= 0 ? "+" : ""}${chgB}B WoW`, asOf: latest.date,
+      interpretation: trend === "EXPANDING"
+        ? "Alden: the spigot is open. Liquidity expansion is the strongest tailwind for risk assets."
+        : "Alden: the spigot is tightening. Contracting balance sheet drains liquidity — all boats lower.",
+      source: "https://fred.stlouisfed.org/series/WALCL",
+    });
+  } catch (e) { indicators.push({ id: "fed_bs", label: "Fed Balance Sheet", value: "—", trend: "N/A", source: "https://fred.stlouisfed.org/series/WALCL" }); }
+
+  // M2 money supply — broader liquidity, monthly
+  try {
+    const { latest, prior3m } = await fredLatestTwo("M2SL");
+    const yoyRows = await fredSeries("M2SL");
+    const yoyPrior = yoyRows[Math.max(0, yoyRows.length - 13)];
+    const yoy = yoyPrior ? (((latest.v - yoyPrior.v) / yoyPrior.v) * 100).toFixed(1) : null;
+    const trend = latest.v > prior3m.v ? "EXPANDING" : "CONTRACTING";
+    indicators.push({
+      id: "m2", label: "M2 Money Supply", value: `$${(latest.v / 1000).toFixed(1)}T`,
+      trend, chg: yoy ? `${yoy >= 0 ? "+" : ""}${yoy}% YoY` : "", asOf: latest.date,
+      interpretation: `M2 ${trend.toLowerCase()} YoY. Alden: M2 growth above ~5% tends to support nominal asset prices; below ~2% is a headwind.`,
+      source: "https://fred.stlouisfed.org/series/M2SL",
+    });
+  } catch (e) { indicators.push({ id: "m2", label: "M2 Money Supply", value: "—", trend: "N/A", source: "https://fred.stlouisfed.org/series/M2SL" }); }
+
+  // Trade-weighted dollar — global liquidity multiplier (Zulauf)
+  try {
+    const { latest, prior3m } = await fredLatestTwo("DTWEXBGS");
+    const chgPct = (((latest.v - prior3m.v) / prior3m.v) * 100).toFixed(1);
+    const trend = latest.v > prior3m.v ? "STRENGTHENING" : "WEAKENING";
+    indicators.push({
+      id: "dollar", label: "Trade-weighted Dollar", value: latest.v.toFixed(1),
+      trend, chg: `${chgPct >= 0 ? "+" : ""}${chgPct}% (3m)`, asOf: latest.date,
+      interpretation: trend === "WEAKENING"
+        ? "Zulauf: weakening dollar loosens global financial conditions. EM assets, commodities, and crypto tend to benefit. Positive for tokenisation thesis."
+        : "Zulauf: strengthening dollar tightens global conditions — watch for EM stress and dollar-debt pressure. Headwind for commodities and risk.",
+      source: "https://fred.stlouisfed.org/series/DTWEXBGS",
+    });
+  } catch (e) { indicators.push({ id: "dollar", label: "Trade-Weighted Dollar", value: "—", trend: "N/A", source: "https://fred.stlouisfed.org/series/DTWEXBGS" }); }
+
+  // Composite liquidity signal — Alden's key summary
+  const bs = indicators.find((i) => i.id === "fed_bs");
+  const m2 = indicators.find((i) => i.id === "m2");
+  const bsUp = bs?.trend === "EXPANDING";
+  const m2Up = m2?.trend === "EXPANDING";
+  const liquiditySignal = bsUp && m2Up ? "EXPANDING" : !bsUp && !m2Up ? "CONTRACTING" : "MIXED";
+  const liquidityColor = liquiditySignal === "EXPANDING" ? "green" : liquiditySignal === "CONTRACTING" ? "red" : "amber";
+
+  const data = {
+    source: "FRED St. Louis Fed — primary, free",
+    framework: "Lyn Alden liquidity cycle + Felix Zulauf dollar framework. These are the macro backdrop — regime context for every other signal in the system.",
+    liquiditySignal, liquidityColor, indicators,
+  };
+  const ttl = indicators.some((i) => i.trend === "N/A") ? 5 * 60 * 1000 : 3600 * 1000;
+  _macroCache = { at: Date.now() - (3600 * 1000 - ttl), data };
+  return data;
+}
+
+// ---- NEWS: FILTERED RSS FEED (signal vs noise split) -----------------------
+/**
+ * Real-time global feed from primary-tier and news-tier RSS sources.
+ * Central bank feeds (Fed, ECB, BIS, IMF) are tagged PRIMARY — treated like
+ * disclosures, low noise. News wires (Reuters, FT) are tagged NEWS — faster
+ * but noisier, framed accordingly. Filtered to watchlist themes + macro keywords.
+ * Items are NOT presented as actionable — they're context for the intelligence
+ * picture, not triggers.
+ */
+let _newsCache = { at: 0, data: null };
+
+const RSS_SOURCES = [
+  { name: "Federal Reserve", url: "https://www.federalreserve.gov/feeds/press_all.xml", tier: "PRIMARY" },
+  { name: "ECB", url: "https://www.ecb.europa.eu/rss/press.html", tier: "PRIMARY" },
+  { name: "BIS", url: "https://www.bis.org/rssfeed.htm", tier: "PRIMARY" },
+  { name: "IMF", url: "https://www.imf.org/en/News/rss?language=eng", tier: "PRIMARY" },
+  { name: "Reuters Markets", url: "https://feeds.reuters.com/reuters/businessNews", tier: "NEWS" },
+  { name: "FT Markets", url: "https://www.ft.com/markets?format=rss", tier: "NEWS" },
+];
+
+const MACRO_KEYWORDS = /tokenis|tokeniz|crypto|bitcoin|digital asset|RWA|blockchain|insider|congress|senate|SEC |EDGAR|liquidity|credit spread|yield curve|fed balance|M2|rate cut|rate hike|quantitative|QE|QT|inflation|recession|dollar|DXY|NVDA|nvidia|coinbase|COIN|HOOD|robinhood|nasdaq|NDAQ|blackrock|BLK|circle|CME|broadcom|AMD|micron/i;
+
+function parseRssItems(xml, source) {
+  const items = [];
+  const blocks = xml.match(/<item>[\s\S]*?<\/item>/gi) || xml.match(/<entry>[\s\S]*?<\/entry>/gi) || [];
+  for (const b of blocks.slice(0, 20)) {
+    const title = (b.match(/<title>(?:<!\[CDATA\[)?\s*(.*?)\s*(?:\]\]>)?<\/title>/i) || [])[1]?.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    const link = (b.match(/<link>([^<]+)<\/link>/i) || b.match(/<link[^>]+href="([^"]+)"/i) || [])[1]?.trim();
+    const pub = (b.match(/<pubDate>([^<]+)<\/pubDate>/i) || b.match(/<published>([^<]+)<\/published>/i) || b.match(/<updated>([^<]+)<\/updated>/i) || [])[1]?.trim();
+    if (!title || !MACRO_KEYWORDS.test(title)) continue;
+    items.push({ title, link, pub: pub ? new Date(pub).toISOString() : null, source: source.name, tier: source.tier });
+  }
+  return items;
+}
+
+async function fetchNews() {
+  if (_newsCache.data && Date.now() - _newsCache.at < 15 * 60 * 1000) return _newsCache.data; // 15min cache
+  const items = [];
+  await Promise.all(RSS_SOURCES.map(async (src) => {
+    try {
+      const r = await fetch(src.url, { headers: { "User-Agent": SEC_UA } });
+      if (!r.ok) return;
+      const xml = await r.text();
+      items.push(...parseRssItems(xml, src));
+    } catch (e) { /* skip unreachable source */ }
+  }));
+  items.sort((a, b) => (b.pub || "").localeCompare(a.pub || ""));
+  const data = {
+    note: "PRIMARY tier = central bank / regulator statements (low noise). NEWS tier = wire services (faster, noisier — context only, not signals).",
+    count: items.length,
+    items: items.slice(0, 40),
+  };
+  _newsCache = { at: Date.now(), data };
+  return data;
+}
+
 // ---- ROUTER ---------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") { cors(res); res.writeHead(204); return res.end(); }
@@ -454,6 +601,14 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, await fetchRegime());
     }
 
+    if (url.pathname === "/api/macro") {
+      return send(res, 200, await fetchMacro());
+    }
+
+    if (url.pathname === "/api/news") {
+      return send(res, 200, await fetchNews());
+    }
+
     if (url.pathname === "/api/congress") {
       const [senate, house] = await Promise.all([
         fetchSenateTrades(tickers).catch(() => []),
@@ -474,7 +629,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { source: "Stooq daily OHLC", ticker: ticker.toUpperCase(), count: bars.length, data: bars });
     }
 
-    return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/regime", "/api/prices", "/api/health"] });
+    return send(res, 404, { error: "Unknown route", routes: ["/api/insiders", "/api/congress", "/api/13f", "/api/regime", "/api/macro", "/api/news", "/api/prices", "/api/health"] });
   } catch (err) {
     return send(res, 500, { error: String(err.message || err) });
   }
