@@ -764,78 +764,51 @@ const ACTIVIST_TTL = 2 * 60 * 60 * 1000; // 2 hours — these filings are rare, 
 async function fetchActivist() {
   if (_activistCache.data && Date.now() - _activistCache.at < ACTIVIST_TTL) return _activistCache.data;
 
-  // Client-side date cutoff: only last 12 months (EFTS dateRange param is unreliable)
-  const cutoffDate = new Date(Date.now() - 365 * 24 * 3600 * 1000).toISOString().split("T")[0];
-  const results = [];
+  // 24-month cutoff — 13D/13G filings are rare; 12 months filtered too aggressively
+  const cutoffDate = new Date(Date.now() - 730 * 24 * 3600 * 1000).toISOString().split("T")[0];
 
-  // Cache filer name lookups (CIK → name) to avoid repeat calls
-  const filerCache = new Map();
-  async function getFilerName(accessionNo) {
-    // Accession format: XXXXXXXXXX-YY-NNNNNN — first 10 digits are the filer's CIK
-    const cik = (accessionNo || "").replace(/-/g, "").slice(0, 10);
-    if (!cik || cik === "0000000000") return "Unknown";
-    if (filerCache.has(cik)) return filerCache.get(cik);
-    try {
-      const r = await fetch(`https://data.sec.gov/submissions/CIK${cik}.json`, { headers: { "User-Agent": SEC_UA }, signal: AbortSignal.timeout(5000) });
-      if (!r.ok) return "Unknown";
-      const j = await r.json();
-      const n = j.name || "Unknown";
-      filerCache.set(cik, n);
-      return n;
-    } catch { return "Unknown"; }
-  }
-
-  for (const { ticker, name } of ACTIVIST_MAP) {
+  // Run EFTS queries in parallel batches of 5 to avoid sequential timeout
+  async function queryOne({ ticker, name }) {
     try {
       const q = encodeURIComponent(`"${name}"`);
-      // %20 for space in form type — EFTS requires this encoding; comma-separate form types
-      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC%2013D,SC%2013G,SC%2013D%2FA,SC%2013G%2FA`;
-      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(10000) });
-      if (!r.ok) continue;
+      const url = `https://efts.sec.gov/LATEST/search-index?q=${q}&forms=SC+13D,SC+13G,SC+13D%2FA,SC+13G%2FA`;
+      const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" }, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return [];
       const data = await r.json();
       const hits = data.hits?.hits || [];
-
-      for (const hit of hits.slice(0, 8)) {
+      const out = [];
+      for (const hit of hits.slice(0, 5)) {
         const s = hit._source || {};
-        // EFTS field names vary — try all known variants
-        const fileDate = s.file_date || s.fileDate || s.period_of_report || null;
-        // Client-side recency filter
+        const fileDate = s.file_date || s.fileDate || null;
         if (!fileDate || fileDate < cutoffDate) continue;
-
-        const formType = s.form_type || s.formType || s.type || "";
+        const formType = s.form_type || s.formType || "";
         const accession = s.accession_no || s.accessionNumber || hit._id || "";
-        // Filer name: try source fields first, fall back to CIK lookup from accession
-        let filer = s.display_names?.[0]?.name || s.entity_name || s.entityName || null;
-        if (!filer && accession) {
-          await sleep(150);
-          filer = await getFilerName(accession);
-        }
-
+        const filer = s.display_names?.[0]?.name || s.entity_name || s.entityName || accession.slice(0, 10) || "Unknown";
         const isActivist = /13D/.test(formType);
-        const isAmendment = /\/A$/.test(formType);
-
-        results.push({
-          ticker,
-          company: name,
-          filer: filer || "Unknown",
-          formType: formType || "SC 13D/13G",
-          isActivist,
-          isAmendment,
-          date: fileDate,
-          accession: accession || null,
-        });
+        const isAmendment = /\/A/.test(formType);
+        out.push({ ticker, company: name, filer, formType: formType || "SC 13?", isActivist, isAmendment, date: fileDate, accession: accession || null });
       }
-    } catch (e) { /* skip — EDGAR hiccup or timeout */ }
-    await sleep(300);
+      return out;
+    } catch { return []; }
+  }
+
+  // Batch parallel execution (5 at a time, 200ms between batches)
+  const allResults = [];
+  for (let i = 0; i < ACTIVIST_MAP.length; i += 5) {
+    const batch = ACTIVIST_MAP.slice(i, i + 5);
+    const batchResults = await Promise.all(batch.map(queryOne));
+    batchResults.forEach(r => allResults.push(...r));
+    if (i + 5 < ACTIVIST_MAP.length) await sleep(200);
   }
 
   // Sort: new 13D (activist) first, then new 13G, then amendments, then by date
-  results.sort((a, b) => {
+  allResults.sort((a, b) => {
     const rankA = a.isActivist && !a.isAmendment ? 0 : !a.isActivist && !a.isAmendment ? 1 : 2;
     const rankB = b.isActivist && !b.isAmendment ? 0 : !b.isActivist && !b.isAmendment ? 1 : 2;
     if (rankA !== rankB) return rankA - rankB;
     return (b.date || "").localeCompare(a.date || "");
   });
+  const results = allResults;
 
   const data = {
     source: "SEC EDGAR SC 13D / SC 13G",
