@@ -86,6 +86,27 @@ async function issuerRegexFor(ticker) {
 // ---- TINY UTILITIES -------------------------------------------------------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// ---- INSIDER RESULT CACHE --------------------------------------------------
+// Each sync cycle could hit 20 tickers × 5 filings × 1 XML = 100 EDGAR requests.
+// Filing lag is 2 days; a 30-minute cache loses nothing meaningful and cuts EDGAR
+// load by ~97% across refresh cycles. Cached per ticker.
+const _insiderCache = new Map(); // ticker → { at: timestamp, data: events[] }
+const INSIDER_TTL = 30 * 60 * 1000; // 30 minutes
+
+async function fetchInsidersForCikCached(ticker, cik) {
+  const hit = _insiderCache.get(ticker);
+  if (hit && Date.now() - hit.at < INSIDER_TTL) return hit.data;
+  const data = await fetchInsidersForCik(ticker, cik);
+  _insiderCache.set(ticker, { at: Date.now(), data });
+  return data;
+}
+
+// ---- CONGRESS RESULT CACHE -------------------------------------------------
+// Senate Stock Watcher's S3 is a single point of failure. Cache successful results
+// so a transient S3 hiccup doesn't kill the panel for the whole session.
+let _congressCache = { at: 0, data: null };
+const CONGRESS_TTL = 15 * 60 * 1000; // 15 minutes
+
 // ---- SERVER-SIDE PRICE CACHE -----------------------------------------------
 // Protects the Twelve Data 800 req/day free quota. Historical (400-day) fetches
 // are cached 30 minutes; short-window fetches 10 minutes. Each ticker+days combo
@@ -306,7 +327,10 @@ async function fetch13f(tickers) {
     lagNote: "Quarterly; filed up to 45 days after quarter end. Long US-equity positions only — regime confirmation, never timing.",
     count: rows.length, data: rows.sort((a, b) => new Date(b.filed) - new Date(a.filed)),
   };
-  _13fCache = { at: Date.now(), data };
+  // Only cache if we got real data. An empty result from a partial EDGAR outage
+  // must NOT be cached — it would lock in a blank 13F panel for 12 hours even
+  // after EDGAR recovers, because _13fCache.data would be truthy ({count:0, data:[]}).
+  if (rows.length > 0) _13fCache = { at: Date.now(), data };
   return data;
 }
 
@@ -674,11 +698,13 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, {
         ok: true, time: new Date().toISOString(),
         fmp: !!FMP_KEY, av: !!AV_KEY, td: !!TD_KEY,
-        pxCached: _pxCache.size,
         caches: {
+          insiders: _insiderCache.size,   // per-ticker cached event sets
+          congress: !!_congressCache.data,
+          f13: !!_13fCache.data,
           regime: !!_regimeCache.data,
           macro: !!_macroCache.data,
-          f13: !!_13fCache.data,
+          prices: _pxCache.size,
         },
       });
     }
@@ -688,8 +714,8 @@ const server = http.createServer(async (req, res) => {
       for (const tk of tickers) {
         const cik = await resolveCik(tk);
         if (!cik) continue;
-        try { all.push(...await fetchInsidersForCik(tk, cik)); } catch (e) { /* skip */ }
-        await sleep(150);
+        try { all.push(...await fetchInsidersForCikCached(tk, cik)); } catch (e) { /* skip */ }
+        await sleep(50); // reduced — cache absorbs most calls
       }
       all = tagClusters(all).sort((a, b) => new Date(b.filed) - new Date(a.filed));
       return send(res, 200, { source: "SEC EDGAR Form 4", lagNote: "~2 day filing lag", count: all.length, data: all.slice(0, 12) });
@@ -712,16 +738,21 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname === "/api/congress") {
+      if (_congressCache.data && Date.now() - _congressCache.at < CONGRESS_TTL) {
+        return send(res, 200, _congressCache.data);
+      }
       const [senate, house] = await Promise.all([
         fetchSenateTrades(tickers).catch(() => []),
         fetchHouseTrades(tickers).catch(() => []),
       ]);
-      const data = [...senate, ...house].sort((a, b) => new Date(b.filed || 0) - new Date(a.filed || 0));
-      return send(res, 200, {
+      const sorted = [...senate, ...house].sort((a, b) => new Date(b.filed || 0) - new Date(a.filed || 0));
+      const payload = {
         source: "Senate Stock Watcher (free) + FMP House" + (FMP_KEY ? "" : " [disabled: no FMP_KEY]"),
         lagNote: "STOCK Act allows up to 45 days from trade to disclosure",
-        count: data.length, data: data.slice(0, 25),
-      });
+        count: sorted.length, data: sorted.slice(0, 25),
+      };
+      if (sorted.length > 0) _congressCache = { at: Date.now(), data: payload };
+      return send(res, 200, payload);
     }
 
     if (url.pathname === "/api/prices") {
