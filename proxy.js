@@ -37,6 +37,9 @@ const PORT = process.env.PORT || 8787;
 const SEC_UA = process.env.SEC_UA || "SignalEngine/1.0 (your-email@example.com)";
 // Optional: free key from financialmodelingprep.com for House + richer Senate.
 const FMP_KEY = process.env.FMP_KEY || "";
+// Optional: free key from alphavantage.co for reliable daily price history.
+// Without it we try Yahoo Finance then Stooq; those may be blocked on Render.
+const AV_KEY = process.env.AV_KEY || "";
 
 // Fallback ticker -> CIK map, used only if SEC's live directory is unreachable.
 // Normally CIKs resolve automatically from company_tickers.json (see below),
@@ -325,23 +328,67 @@ async function fetchHouseTrades(tickers) {
   return out;
 }
 
-// ---- PRICES: DAILY OHLC FROM STOOQ (FREE, NO KEY) -------------------------
-// Stooq serves CSV at stooq.com/q/d/l/?s=TICKER.US&i=d — no key, no CORS issue
-// server-side. We parse it into the {date, close} bars the backtest expects.
-async function fetchPrices(ticker, days) {
-  // Indices (^vix, ^spx) keep their prefix; US equities get the .us suffix.
+// ---- PRICES: DAILY OHLC — Yahoo Finance (primary), Stooq (fallback) --------
+// Yahoo Finance: no key, reliable server-side, covers equities + ETFs + indices.
+// Stooq: kept as fallback for anything Yahoo doesn't carry.
+async function fetchPricesYahoo(ticker, days) {
+  const range = days && days <= 365 ? "1y" : "2y";
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=${range}&includePrePost=false`;
+  const r = await fetch(url, { headers: { "User-Agent": SEC_UA, "Accept": "application/json" } });
+  if (!r.ok) throw new Error(`Yahoo ${r.status}`);
+  const j = await r.json();
+  const res = j?.chart?.result?.[0];
+  if (!res) throw new Error("Yahoo: no result");
+  const ts = res.timestamp || [];
+  const q = res.indicators?.quote?.[0] || {};
+  const bars = ts.map((t, i) => ({
+    date: new Date(t * 1000).toISOString().slice(0, 10),
+    open: q.open?.[i] ?? null,
+    high: q.high?.[i] ?? null,
+    low: q.low?.[i] ?? null,
+    close: q.close?.[i] ?? null,
+    volume: q.volume?.[i] ?? null,
+  })).filter((b) => b.close != null && b.close > 0);
+  if (!bars.length) throw new Error("Yahoo: empty bars for " + ticker);
+  return days ? bars.slice(-days) : bars;
+}
+
+async function fetchPricesStooq(ticker, days) {
   const t = ticker.toLowerCase();
   const sym = t.startsWith("^") ? t : `${t}.us`;
   const r = await fetch(`https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`);
   if (!r.ok) throw new Error(`Stooq ${r.status}`);
   const csv = await r.text();
-  if (!csv || /N\/A/i.test(csv) || !csv.includes("Date")) throw new Error("no price data for " + ticker);
-  const rows = csv.trim().split("\n").slice(1); // drop header
-  const bars = rows.map((line) => {
+  if (!csv || /N\/A/i.test(csv) || !csv.includes("Date")) throw new Error("Stooq: no data for " + ticker);
+  const bars = csv.trim().split("\n").slice(1).map((line) => {
     const [date, open, high, low, close, volume] = line.split(",");
     return { date, open: +open, high: +high, low: +low, close: +close, volume: +volume };
   }).filter((b) => b.close > 0);
   return days ? bars.slice(-days) : bars;
+}
+
+async function fetchPricesAV(ticker, days) {
+  if (!AV_KEY) throw new Error("no AV_KEY");
+  const size = days && days <= 100 ? "compact" : "full"; // compact = last 100 bars
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(ticker)}&outputsize=${size}&apikey=${AV_KEY}`;
+  const r = await fetch(url, { headers: { "User-Agent": SEC_UA } });
+  if (!r.ok) throw new Error(`AV ${r.status}`);
+  const j = await r.json();
+  if (j["Note"] || j["Information"]) throw new Error("AV rate limit hit — 25 req/day on free tier");
+  const series = j["Time Series (Daily)"];
+  if (!series) throw new Error("AV: no series for " + ticker);
+  const bars = Object.entries(series)
+    .map(([date, v]) => ({ date, open: +v["1. open"], high: +v["2. high"], low: +v["3. low"], close: +v["4. close"], volume: +v["5. volume"] }))
+    .filter((b) => b.close > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (!bars.length) throw new Error("AV: empty bars for " + ticker);
+  return days ? bars.slice(-days) : bars;
+}
+
+async function fetchPrices(ticker, days) {
+  if (AV_KEY) return fetchPricesAV(ticker, days);           // preferred: reliable, free key
+  try { return await fetchPricesYahoo(ticker, days); } catch (e) { /* fall through */ }
+  return fetchPricesStooq(ticker, days);                     // last resort
 }
 
 // ---- REGIME WARNING LIGHTS (free macro series) -----------------------------
@@ -400,7 +447,7 @@ async function fetchRegime() {
   } catch (e) { lights.push({ id: "credit", label: "High-yield credit spread", value: "—", status: "N/A", detail: "FRED unreachable.", source: "https://fred.stlouisfed.org/series/BAMLH0A0HYM2" }); }
 
   try {
-    const s = await fredSeries("VIXCLS"); // VIX from FRED too — one reliable source beats two flaky ones
+    const s = await fredSeries("VIXCLS"); // VIX from FRED — reliable, no symbol quirks
     const v = s[s.length - 1].v;
     lights.push({
       id: "vix", label: "VIX (equity volatility)", value: v.toFixed(1), asOf: s[s.length - 1].date,
@@ -578,7 +625,7 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (url.pathname === "/api/health") {
-      return send(res, 200, { ok: true, time: new Date().toISOString(), fmp: !!FMP_KEY });
+      return send(res, 200, { ok: true, time: new Date().toISOString(), fmp: !!FMP_KEY, av: !!AV_KEY });
     }
 
     if (url.pathname === "/api/insiders") {
