@@ -28,6 +28,13 @@
       "name": "Dr. Sarah Okafor",
       "role": "Digital Asset Policy Analyst",
       "focus": "Stablecoin regulation · MiCA · SEC frameworks · Legislative calendars · CBDC developments"
+    },
+    {
+      "id": "jc",
+      "initials": "JC",
+      "name": "James Calloway",
+      "role": "US Monetary & Tokenisation Strategist",
+      "focus": "Dollar debasement · USD liquidity cycle · Tokenised US Treasuries · AI sovereign-fund policy · Narrative-token risk"
     }
   ],
   "guestExperts": [],
@@ -50,6 +57,11 @@
           "expert": "so",
           "text": "From a policy standpoint, I'd flag that the regulatory window is unusually open right now. Both the US stablecoin bill and MiCA implementation guidance are in motion simultaneously — and the EU's approach is ahead of the US. Institutions in Europe are already compliance-planning for tokenised asset issuance under MiCA. That's the real early-mover signal: European custody and settlement infrastructure is being built ahead of US clarity. Watch for cross-jurisdictional plays — names with EU regulatory approval are structurally advantaged if the US delays.",
           "pills": ["regulatory", "early signal"]
+        },
+        {
+          "expert": "jc",
+          "text": "I'll come at this from the currency side, because it's the tailwind under everything else on this board. A government carrying record debt has a structural incentive to let the dollar run soft — negative real rates inflate the debt away while nominal asset prices climb. That's not a conspiracy, it's arithmetic, and you can read it in the policy direction before it's ever stated out loud. A deliberately accommodated dollar pushes capital toward scarce and productive assets, and tokenisation is the rail that capital moves on. The early edge isn't the headline — it's being positioned in the infrastructure before the policy language catches up to what the Treasury and Fed are already doing.",
+          "pills": ["dollar debasement", "early signal"]
         }
       ]
     },
@@ -70,6 +82,11 @@
           "expert": "so",
           "text": "The uncrowded policy play right now is CBDC infrastructure. Central banks are building — the BIS Innovation Hub has active projects with 25+ central banks — but the private-sector middleware layer (compliance rails, wallet providers, on-ramps) is still forming. Companies winning those central bank contracts are doing so quietly, without press releases. The 13G activist scanner is exactly the right tool to catch when serious money starts accumulating those names.",
           "pills": ["early signal", "regulatory"]
+        },
+        {
+          "expert": "jc",
+          "text": "The genuinely uncrowded angle is the tokenisation of US government-linked assets — and I mean the real plumbing, not the tickers chasing the narrative. Tokenised Treasuries are already live (BlackRock's BUIDL, Franklin's FOBXX), and the settlement and custody layer underneath them is still early-priced. On the policy side, watch the proposed American AI Sovereign Wealth Fund: Senator Sanders has signalled a bill, and figures like Musk and Altman have publicly floated public AI-equity funds. If a US government fund ever takes direct stakes in AI companies, that's a generational flow event worth tracking now. One firm caution, because it's the easiest way to get hurt here: there is a Solana token, $AAIF, marketing itself off that exact name and presidential imagery — its own developers label it entertainment, it is not the policy and not a fund. Track the legislation; don't confuse the narrative with a tradeable asset.",
+          "pills": ["tokenisation", "AAIF caution"]
         }
       ]
     },
@@ -90,6 +107,11 @@
           "expert": "so",
           "text": "The regulatory risk I watch most closely is fragmentation — the EU, US, UK, and Singapore all moving on different frameworks simultaneously without coordination. If a major tokenised asset platform has to hold four separate regulatory approvals, the compliance cost collapses the business case for smaller players. That actually concentrates the market in large, well-capitalised institutions — BlackRock, BNY Mellon, JPMorgan — which are already on the watchlist. Fragmentation risk is paradoxically bullish for incumbents.",
           "pills": ["risk", "conviction"]
+        },
+        {
+          "expert": "jc",
+          "text": "My risk flag is narrative capture. When a policy idea this big is in the air, the market floods with tokens and micro-caps borrowing the language — 'AI sovereign fund', official-looking seals, prospectus-grade copy — with nothing behind them. The dollar-debasement thesis is real and slow; most of the assets claiming to *be* it are fast and hollow. The other risk is the trade getting too consensus: if the soft-dollar view becomes the whole market's base case, it's already priced, and a hawkish surprise or a liquidity drain unwinds the crowded hard-asset positioning violently. The discipline that protects you is unchanged — trace every name to a primary filing, size speculation as speculation, and never let a famous person's quote about a concept become your due diligence on a ticker.",
+          "pills": ["risk", "narrative capture"]
         }
       ]
     },
@@ -110,6 +132,11 @@
           "expert": "so",
           "text": "From the policy lens: the institutions that win this decade are the ones with regulatory relationships, not just technology. The companies already working with the BIS, ECB, and Fed on CBDC pilots are building moats that aren't visible on a price chart. That's what the 13F institutional flow data is tracking indirectly — when Renaissance or ARK accumulate a name, ask what contract pipeline they know about. Regime confirmation from lagged disclosure is still regime confirmation.",
           "pills": ["regulatory", "conviction"]
+        },
+        {
+          "expert": "jc",
+          "text": "Where I align with the panel: the dollar's slow debasement and the tokenisation build are the same trade seen from two ends. A soft dollar pushes capital toward scarce and productive assets; tokenisation is the rail that lets that capital move. The signable, real policy is the regime confirmation — the GENIUS Act on stablecoins is law, the CLARITY Act is moving through the Senate, and an AI sovereign-fund proposal is being drafted. That's the regime. The meme tokens riding the same words are the noise around it. The honest position is exposure to the infrastructure and the disclosed institutional flow, sized by risk from the stop, held with patience — and the narrative tokens left for someone else. This is regime reading, not prediction; none of it tells you the timing.",
+          "pills": ["regime shift", "conviction"]
         }
       ]
     }
@@ -164,6 +191,11 @@
       "type": "research",
       "ticker": null,
       "text": "Screen EU-regulated tokenised asset platforms for 13G accumulation. Companies with MiCA compliance ahead of US peers have a structural head start — the smart money may already be moving."
+    },
+    {
+      "type": "watch",
+      "ticker": null,
+      "text": "Track the proposed American AI Sovereign Wealth Fund (Sanders bill signalled, not yet law; concept echoed by Musk and Altman). A US government fund taking direct AI-equity stakes would be a major flow event worth front-running via 13F/13G. CAUTION: the $AAIF Solana token borrows this exact name and presidential imagery but is unrelated — its own developers disclaim it as 'for entertainment'. It is not the policy and not a fund; do not size it as one."
     }
   ]
 }
