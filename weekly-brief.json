@@ -38,6 +38,25 @@
     }
   ],
   "guestExperts": [],
+  "forecast": {
+    "weekOf": "w/c 13 Jun 2026",
+    "summary": "Disclosed flows and the regime lights point to a constructive-but-patient posture on the tokenisation complex into the week ahead. Institutional 13F/13G accumulation in fintech and crypto-adjacent names continues to lead price by weeks, and the macro backdrop — soft-dollar bias, steady liquidity — remains a tailwind. The week's swing factor is legislative: any movement on the US stablecoin / market-structure calendar would extend or compress the timeline. This is a regime read, not a price or timing call.",
+    "calls": [
+      { "label": "Tokenisation infrastructure", "call": "Constructive", "basis": "Live institutional product lines plus continued 13G accumulation; the structural build is intact. A posture, not an entry trigger.", "confidence": "moderate" },
+      { "label": "XRP settlement rail", "call": "Constructive", "basis": "Sovereign settlement-rail integrations still progressing; supply overhang means size by risk, never by conviction.", "confidence": "low-moderate" },
+      { "label": "AI / chips rotation", "call": "Neutral", "basis": "Hinges on the dollar and Fed path; US-China export-control headlines are the main two-way risk.", "confidence": "low" }
+    ],
+    "watch": "Any US stablecoin or market-structure (CLARITY) legislative movement — progress accelerates the tokenisation timeline; a stall compresses it."
+  },
+  "lastForecastReview": {
+    "weekOf": "w/c 6 Jun 2026",
+    "summary": "First tracked review. Measuring last week's regime calls against what actually disclosed and printed — this is confirmation of a directional read, not price-target scoring.",
+    "results": [
+      { "label": "Tokenisation infrastructure", "call": "Constructive", "outcome": "CONFIRMED", "note": "Fresh 13G accumulation appeared in watchlist-adjacent fintech names and institutional product AUM kept rising — the structural read held." },
+      { "label": "XRP settlement rail", "call": "Constructive", "outcome": "PARTIAL", "note": "Corridor-integration news continued, but no new disclosed accumulation crossed the 5% threshold this week; conviction unchanged, evidence thin." },
+      { "label": "AI / chips rotation", "call": "Neutral", "outcome": "CONFIRMED", "note": "No directional consensus emerged in disclosed insider or congressional flow; the neutral stance was the right call." }
+    ]
+  },
   "nextInviteNote": "If US-China export controls escalate or chip supply chain news breaks, invite a Supply Chain Strategist. If M&A activity appears in the tokenisation space, invite a Corporate Finance Analyst.",
   "sections": [
     {
