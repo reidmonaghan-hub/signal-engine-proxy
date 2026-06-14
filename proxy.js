@@ -475,8 +475,12 @@ async function fetchPricesAV(ticker, days) {
 
 async function fetchPricesTD(ticker, days) {
   if (!TD_KEY) throw new Error("no TD_KEY");
+  // Twelve Data expects slash format for crypto/forex pairs (BTC/USD, GBP/USD),
+  // but the app passes dash format (BTC-USD). Normalise so crypto resolves
+  // instead of erroring out and leaving the panel blank.
+  const sym = /-(USD|GBP|EUR|USDT)$/i.test(ticker) ? ticker.replace("-", "/") : ticker;
   const size = Math.min(days || 400, 400);
-  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(ticker)}&interval=1day&outputsize=${size}&apikey=${TD_KEY}`;
+  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(sym)}&interval=1day&outputsize=${size}&apikey=${TD_KEY}`;
   const r = await fetch(url, { headers: { "User-Agent": SEC_UA } });
   if (!r.ok) throw new Error(`TwelveData ${r.status}`);
   const j = await r.json();
@@ -491,8 +495,11 @@ async function fetchPricesTD(ticker, days) {
 }
 
 async function fetchPrices(ticker, days) {
-  if (TD_KEY) return fetchPricesTD(ticker, days);           // 800 req/day free — preferred
-  if (AV_KEY) return fetchPricesAV(ticker, days);           // 25 req/day — fallback
+  // Try providers in order, falling THROUGH on failure so one dead source
+  // (e.g. Yahoo blocking the server, or a symbol Twelve Data lacks) never
+  // takes the whole price panel down.
+  if (TD_KEY) { try { return await fetchPricesTD(ticker, days); } catch (e) { /* fall through */ } }  // 800 req/day free — preferred
+  if (AV_KEY) { try { return await fetchPricesAV(ticker, days); } catch (e) { /* fall through */ } }  // 25 req/day — fallback
   try { return await fetchPricesYahoo(ticker, days); } catch (e) { /* fall through */ }
   // Skip Stooq for crypto pairs (BTC-USD etc.) — Stooq can't handle them
   if (!ticker.includes("-")) return fetchPricesStooq(ticker, days); // last resort for equities
@@ -506,9 +513,23 @@ const FX_TTL = 60 * 60 * 1000;
 
 async function getGBPRate() {
   if (_fxCache.rate && Date.now() - _fxCache.at < FX_TTL) return _fxCache.rate;
-  const bars = await fetchPricesYahoo("GBPUSD=X", 3);
-  const rate = bars[bars.length - 1]?.close;
-  if (!rate) throw new Error("Could not fetch GBP/USD rate");
+  let rate = null;
+  // 1) Frankfurter — free, no key, ECB data. Returns USD per 1 GBP. Primary
+  //    because it has no rate limit and doesn't block server-side requests
+  //    the way Yahoo Finance does.
+  try {
+    const r = await fetch("https://api.frankfurter.dev/v1/latest?from=GBP&to=USD");
+    if (r.ok) rate = (await r.json())?.rates?.USD || null;
+  } catch (e) { /* fall through */ }
+  // 2) Twelve Data forex — same provider as our prices.
+  if (!rate && TD_KEY) {
+    try { const b = await fetchPricesTD("GBP/USD", 3); rate = b[b.length - 1]?.close || null; } catch (e) { /* fall through */ }
+  }
+  // 3) Yahoo Finance — last resort (frequently blocks datacenter IPs).
+  if (!rate) {
+    try { const b = await fetchPricesYahoo("GBPUSD=X", 3); rate = b[b.length - 1]?.close || null; } catch (e) { /* fall through */ }
+  }
+  if (!rate) throw new Error("Could not fetch GBP/USD rate from any source");
   _fxCache = { at: Date.now(), rate };
   return rate;
 }
