@@ -22206,6 +22206,29 @@
         avoid: "Buying purely on 'settlement rail' narrative while escrow supply floods the market. Volume up + price flat is a warning, not a buy.",
         style: "Small core position; add only on confirmed integration milestones."
       }
+    },
+    {
+      id: "quantum",
+      name: "Quantum + AI Compute",
+      bias: "long-structural",
+      icon: Zap,
+      confidence: "low",
+      score: 46,
+      summary: "AI's relentless compute demand and early quantum-computing milestones (error-correction, logical-qubit scaling) are converging into a long-horizon frontier theme. High variance, long timeline \u2014 the signal worth tracking is disclosed institutional/insider accumulation in quantum and AI-infra names, not the headlines.",
+      triggers: [
+        { t: "Fault-tolerant / logical-qubit milestone (IBM, Google, IonQ)", status: "watching", weight: "high" },
+        { t: "Hyperscaler or government quantum procurement contract awarded", status: "watching", weight: "high" },
+        { t: "Insider / 13F accumulation in pure-play quantum names", status: "watching", weight: "med" },
+        { t: "Megacap raises AI-compute capex guidance", status: "fired", weight: "med" },
+        { t: "National quantum/AI funding programme expands", status: "watching", weight: "low" }
+      ],
+      invalidation: "Credible evidence near-term quantum hardware can't scale economically, or AI-capex guidance rolling over hard \u2014 frontier themes de-rate fast when the funding narrative breaks.",
+      entry: {
+        stance: "Frontier theme \u2014 tiny, patient, speculative sizing only.",
+        conditions: ["Disclosed institutional/insider accumulation, not just press releases", "A concrete technical or procurement milestone, not a roadmap promise", "No invalidation trigger active"],
+        avoid: "Chasing single-day quantum-headline spikes in illiquid small-caps \u2014 this space gaps both ways on narrative.",
+        style: "Venture-style risk: tiny tranches across several names, money you can lose entirely, never leveraged."
+      }
     }
   ];
   var SEED_CONGRESS = [

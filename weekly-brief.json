@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-13T08:00:00Z",
-  "nextBriefing": "2026-06-20",
-  "weekLabel": "w/c 13 Jun 2026",
+  "generatedAt": "2026-06-22T08:00:00Z",
+  "nextBriefing": "2026-06-29",
+  "weekLabel": "w/c 22 Jun 2026",
   "pulse": [
-    "Liquidity cycle: watch Fed balance sheet direction this week — expansion would be a tailwind for the tokenisation thesis",
-    "Activist scanner: 13D/13G filings in crypto/AI/fintech being monitored — any 5%+ accumulation in watchlist-adjacent names is early signal",
-    "Regulatory calendar: US stablecoin bill markup is the binary event to watch — progress = 12–18 month acceleration for the whole space"
+    "Liquidity is supportive: QT formally ended on 1 Dec 2025 and the Fed is now running reserve-management purchases; M2 is ~$22.8T (+4.6% y/y), the balance sheet ~$6.73T, RRP near zero and bank credit above $19.5T — money-market plumbing is ample heading out of the 16–17 Jun FOMC.",
+    "Regulatory catalyst is live: the GENIUS Act is law and the CLARITY Act cleared its stablecoin-yield compromise (activity rewards allowed, yield on idle balances barred) and is heading toward Senate markup — but the DeFi and tokenisation provisions are still unwritten. This is the binary event for the space.",
+    "Risk regime is calm-to-complacent: VIX ~17, HY credit spreads historically narrow, the curve un-inverted (10y–2y ~+27bp, 10y–3m ~+71bp) and DXY firm near 100–101. Low vol plus tight spreads is crowded-trade risk, not an all-clear; no notable new crypto/AI/fintech 13D/13G accumulation disclosed this week."
   ],
   "experts": [
     {
@@ -35,127 +35,180 @@
       "name": "James Calloway",
       "role": "US Monetary & Tokenisation Strategist",
       "focus": "Dollar debasement · USD liquidity cycle · Tokenised US Treasuries · AI sovereign-fund policy · Narrative-token risk"
-    }
-  ],
-  "guestExperts": [],
-  "forecast": {
-    "weekOf": "w/c 13 Jun 2026",
-    "summary": "Disclosed flows and the regime lights point to a constructive-but-patient posture on the tokenisation complex into the week ahead. Institutional 13F/13G accumulation in fintech and crypto-adjacent names continues to lead price by weeks, and the macro backdrop — soft-dollar bias, steady liquidity — remains a tailwind. The week's swing factor is legislative: any movement on the US stablecoin / market-structure calendar would extend or compress the timeline. This is a regime read, not a price or timing call.",
-    "calls": [
-      { "label": "Tokenisation infrastructure", "call": "Constructive", "basis": "Live institutional product lines plus continued 13G accumulation; the structural build is intact. A posture, not an entry trigger.", "confidence": "moderate" },
-      { "label": "XRP settlement rail", "call": "Constructive", "basis": "Sovereign settlement-rail integrations still progressing; supply overhang means size by risk, never by conviction.", "confidence": "low-moderate" },
-      { "label": "AI / chips rotation", "call": "Neutral", "basis": "Hinges on the dollar and Fed path; US-China export-control headlines are the main two-way risk.", "confidence": "low" }
-    ],
-    "watch": "Any US stablecoin or market-structure (CLARITY) legislative movement — progress accelerates the tokenisation timeline; a stall compresses it."
-  },
-  "lastForecastReview": {
-    "weekOf": "w/c 6 Jun 2026",
-    "summary": "First tracked review. Measuring last week's regime calls against what actually disclosed and printed — this is confirmation of a directional read, not price-target scoring.",
-    "results": [
-      { "label": "Tokenisation infrastructure", "call": "Constructive", "outcome": "CONFIRMED", "note": "Fresh 13G accumulation appeared in watchlist-adjacent fintech names and institutional product AUM kept rising — the structural read held." },
-      { "label": "XRP settlement rail", "call": "Constructive", "outcome": "PARTIAL", "note": "Corridor-integration news continued, but no new disclosed accumulation crossed the 5% threshold this week; conviction unchanged, evidence thin." },
-      { "label": "AI / chips rotation", "call": "Neutral", "outcome": "CONFIRMED", "note": "No directional consensus emerged in disclosed insider or congressional flow; the neutral stance was the right call." }
-    ]
-  },
-  "nextInviteNote": "If US-China export controls escalate or chip supply chain news breaks, invite a Supply Chain Strategist. If M&A activity appears in the tokenisation space, invite a Corporate Finance Analyst.",
-  "sections": [
-    {
-      "heading": "Opening — where is the early edge right now?",
-      "turns": [
-        {
-          "expert": "mc",
-          "text": "The most consistent early-entry signal I track is institutional filing lag — when a big fund first files a 13G, you're typically 30 to 90 days ahead of the trade becoming common knowledge. Right now that lag is most visible in tokenised real-world assets. BlackRock's BUIDL fund crossed $500M, Franklin Templeton's FOBXX is on-chain — these aren't experiments anymore, they're product lines. The institutions building around them are still small-cap or pre-public. That's the early window.",
-          "pills": ["early signal", "tokenisation"]
-        },
-        {
-          "expert": "ap",
-          "text": "I'd add geopolitical pressure as the catalyst compressing that timeline. The SWIFT exclusions from 2022 onward weren't just punitive — they demonstrated dollar-system brittleness that every G20 finance ministry has since modelled. What you're seeing in Gulf states, ASEAN, and increasingly India is a quiet build-out of alternative settlement rails. XRP and the XRPL are explicitly positioned for this corridor — UAE, Singapore, and Japanese bank integrations are not coincidental. They're hedge positions by sovereign financial systems.",
-          "pills": ["geopolitical", "XRP"]
-        },
-        {
-          "expert": "so",
-          "text": "From a policy standpoint, I'd flag that the regulatory window is unusually open right now. Both the US stablecoin bill and MiCA implementation guidance are in motion simultaneously — and the EU's approach is ahead of the US. Institutions in Europe are already compliance-planning for tokenised asset issuance under MiCA. That's the real early-mover signal: European custody and settlement infrastructure is being built ahead of US clarity. Watch for cross-jurisdictional plays — names with EU regulatory approval are structurally advantaged if the US delays.",
-          "pills": ["regulatory", "early signal"]
-        },
-        {
-          "expert": "jc",
-          "text": "I'll come at this from the currency side, because it's the tailwind under everything else on this board. A government carrying record debt has a structural incentive to let the dollar run soft — negative real rates inflate the debt away while nominal asset prices climb. That's not a conspiracy, it's arithmetic, and you can read it in the policy direction before it's ever stated out loud. A deliberately accommodated dollar pushes capital toward scarce and productive assets, and tokenisation is the rail that capital moves on. The early edge isn't the headline — it's being positioned in the infrastructure before the policy language catches up to what the Treasury and Fed are already doing.",
-          "pills": ["dollar debasement", "early signal"]
-        }
-      ]
     },
     {
-      "heading": "Where is the entry that isn't crowded yet?",
+      "id": "yt",
+      "initials": "YT",
+      "name": "Dr. Yuki Tanaka",
+      "role": "Quantum & AI Compute Analyst",
+      "focus": "Quantum milestones · Fault-tolerance & logical qubits · AI compute demand · Frontier-tech institutional flows · Speculative-sizing discipline"
+    }
+  ],
+  "guestExperts": [
+    {
+      "id": "mp",
+      "initials": "MP",
+      "name": "Monetary Policy Specialist",
+      "role": "Guest — Central Bank Operations",
+      "focus": "FOMC mechanics · Reserve-management purchases · Balance-sheet plumbing"
+    },
+    {
+      "id": "dm",
+      "initials": "DM",
+      "name": "Digital Asset Market Analyst",
+      "role": "Guest — Crypto Market Structure",
+      "focus": "Market-structure legislation · Stablecoin rails · Exchange/custody plumbing"
+    }
+  ],
+  "forecast": {
+    "weekOf": "w/c 22 Jun 2026",
+    "summary": "Disclosed flows and the regime lights point to a constructive-but-selective posture into the week ahead. Liquidity is a tailwind — QT has concluded, reserve-management purchases are underway, M2 is expanding and money-market plumbing is ample — and the regulatory track is the live catalyst as the CLARITY Act moves toward Senate markup. But the dollar is firm near the top of its range rather than weakening, vol and credit spreads are unusually compressed, and no fresh institutional accumulation disclosed this week, so this is a posture, not an entry. This is a regime read, not a price or timing call, and not financial advice.",
+    "calls": [
+      { "label": "Tokenisation infrastructure", "call": "Constructive", "basis": "GENIUS in force, CLARITY's stablecoin-yield compromise done with markup pending, FDIC rulemaking underway and liquidity supportive — the structural and regulatory build is intact. A posture, not an entry trigger.", "confidence": "moderate" },
+      { "label": "XRP settlement rail", "call": "Neutral", "basis": "No fresh disclosed accumulation or new corridor catalyst this week; broad regulatory clarity helps the space but the supply overhang persists — size by risk, never by conviction.", "confidence": "low-moderate" },
+      { "label": "AI / chips rotation", "call": "Cautious", "basis": "The dollar is firm near 100–101 rather than soft, while VIX ~17 and historically tight HY spreads signal late-cycle complacency; no rotation trigger disclosed. Lagged data is a regime signal, not a timing one.", "confidence": "low" },
+      { "label": "Quantum + AI compute", "call": "Cautious", "basis": "Liquidity funds the frontier and AI capex keeps rising, but no milestone or disclosed accumulation this week. A long-horizon, high-variance theme — venture-style speculative sizing only, never leveraged.", "confidence": "low" }
+    ],
+    "watch": "Whether the CLARITY Act proceeds to Senate markup on schedule and how it treats tokenisation and DeFi — progress accelerates the timeline; a stall or restrictive DeFi language compresses it."
+  },
+  "lastForecastReview": {
+    "weekOf": "w/c 13 Jun 2026",
+    "summary": "Confirmation of last week's directional reads, not price-target scoring. The constructive tokenisation call held on real regulatory progress; the XRP call did not gain fresh evidence; the neutral chips call was right.",
+    "results": [
+      { "label": "Tokenisation infrastructure", "call": "Constructive", "outcome": "CONFIRMED", "note": "CLARITY's stablecoin-yield compromise cleared and the bill advanced toward Senate markup, with GENIUS already in force and FDIC issuer-standard rulemaking live — regulatory progress confirmed the constructive read." },
+      { "label": "XRP settlement rail", "call": "Constructive", "outcome": "PARTIAL", "note": "No new disclosed 5%+ accumulation or fresh corridor catalyst printed this week; broad clarity helps the whole space but the specific XRP evidence stayed thin — conviction unchanged, not strengthened. Honest call: the read did not advance." },
+      { "label": "AI / chips rotation", "call": "Neutral", "outcome": "CONFIRMED", "note": "The dollar held firm near the top of its range (DXY ~100–101) and no soft-dollar rotation trigger materialised; the neutral stance was the right call." }
+    ]
+  },
+  "nextInviteNote": "If US–China export controls or chip-supply news escalates, invite a Supply Chain Strategist; if M&A or IPO activity hits the tokenisation space, invite a Corporate Finance Analyst.",
+  "sections": [
+    {
+      "heading": "Where the liquidity and rate regime sits this week",
       "turns": [
         {
           "expert": "mc",
-          "text": "Three themes I'm watching that the mainstream hasn't fully priced. First, tokenised sovereign debt — emerging market governments issuing bonds on-chain to access global liquidity without US-dominated syndication; Brazil and Kazakhstan have both piloted this. Second, on-chain FX settlement — cross-border stablecoin rails compressing 2-day SWIFT settlement to seconds; the pure-play infrastructure layer is still cheap. Third, AI-data monetisation — companies owning proprietary datasets licensing them to model trainers; Palantir is the most visible public play, but the IP frameworks aren't even written yet.",
-          "pills": ["early signal", "3 themes"]
+          "text": "The backdrop for early-entry work just got cleaner. With QT concluded and the Fed running reserve-management purchases, the liquidity headwind that capped the tokenisation infrastructure names through 2024–25 has flipped to a mild tailwind, and M2 expanding at ~4.6% confirms it. That doesn't change my discipline — I still want the institutional filing lag to lead me, not the macro headline. But when liquidity stops draining, the lag between a first 13G and the trade becoming consensus tends to compress, so the watch window matters more now. Nothing notable crossed the 5% line this week, which is itself information: the accumulation I'd want to front-run hasn't disclosed yet.",
+          "pills": ["liquidity", "early signal"]
         },
         {
           "expert": "ap",
-          "text": "The sovereign debt angle connects to dollar hegemony stress. The Fed's rate cycle is the single biggest variable in EM capital flows. When the cycle breaks, you get a violent rotation into risk assets and EM. The Signal Engine thesis — XRP, BTC, tokenisation — benefits from exactly that rotation. The geopolitical sub-signal to watch: if BRICS formalise a commodity pricing mechanism that bypasses the dollar, dollar weakening will front-run any formal announcement by weeks.",
+          "text": "I read the firm dollar as the important tension on this board. DXY near 100–101 — the top of its 52-week range — is not the soft-dollar regime the rotation thesis needs, and it tells you global capital still defaults to the dollar even as the settlement-rail competition builds underneath. The structural BRICS and Gulf diversification story is real and slow; it is a decade-long shift in plumbing, not a this-week trade. What I watch is whether the dollar's strength is cyclical (rate differentials) or is starting to crack on fiscal stress — only the latter front-runs the rotation.",
           "pills": ["geopolitical", "dollar cycle"]
         },
         {
           "expert": "so",
-          "text": "The uncrowded policy play right now is CBDC infrastructure. Central banks are building — the BIS Innovation Hub has active projects with 25+ central banks — but the private-sector middleware layer (compliance rails, wallet providers, on-ramps) is still forming. Companies winning those central bank contracts are doing so quietly, without press releases. The 13G activist scanner is exactly the right tool to catch when serious money starts accumulating those names.",
-          "pills": ["early signal", "regulatory"]
+          "text": "From the policy lens, the liquidity picture and the legislative calendar are finally pulling in the same direction. Ample reserves plus a Fed that has stopped shrinking its balance sheet gives issuers and custodians a more stable funding environment to build tokenised-asset rails into. The FDIC's proposed rulemaking on GENIUS Act stablecoin-issuer standards is the quiet but important development — it starts to define which institutions can actually issue compliant payment stablecoins. Compliance-ready issuers are the structurally advantaged names, and that advantage is being written into rule text right now.",
+          "pills": ["regulatory", "liquidity"]
         },
         {
           "expert": "jc",
-          "text": "The genuinely uncrowded angle is the tokenisation of US government-linked assets — and I mean the real plumbing, not the tickers chasing the narrative. Tokenised Treasuries are already live (BlackRock's BUIDL, Franklin's FOBXX), and the settlement and custody layer underneath them is still early-priced. On the policy side, watch the proposed American AI Sovereign Wealth Fund: Senator Sanders has signalled a bill, and figures like Musk and Altman have publicly floated public AI-equity funds. If a US government fund ever takes direct stakes in AI companies, that's a generational flow event worth tracking now. One firm caution, because it's the easiest way to get hurt here: there is a Solana token, $AAIF, marketing itself off that exact name and presidential imagery — its own developers label it entertainment, it is not the policy and not a fund. Track the legislation; don't confuse the narrative with a tradeable asset.",
-          "pills": ["tokenisation", "AAIF caution"]
+          "text": "This is the part of the cycle my whole framework is built around: the Fed has ended balance-sheet contraction and is buying again to keep reserves ample, and M2 is back to steady expansion — that is the accommodated-dollar posture you read in the plumbing before it's ever stated as policy. A government carrying record debt has a structural incentive to let real rates stay soft, and that pushes capital toward scarce and productive assets; tokenisation is the rail it moves on. The honest caveat is that the nominal dollar is firm right now, so the debasement is showing up in policy mechanics more than in the FX print. I treat tokenised Treasuries and the custody-settlement layer beneath them as the cleanest exposure — real plumbing, not the tickers chasing the name.",
+          "pills": ["dollar debasement", "tokenisation"]
+        },
+        {
+          "expert": "yt",
+          "text": "The same liquidity shift the panel is describing is what funds my corner of the board. Quantum and AI-compute is a long-duration, capital-hungry frontier — it lives or dies on the cost of money and the willingness of hyperscalers and governments to keep spending. With QT over and reserves kept ample, that capex backdrop stays supportive, and megacap AI-compute guidance is still being revised up. But I separate a funding tailwind from a milestone: ample liquidity lets the build continue, it doesn't pull fault-tolerance forward. Nothing disclosed this week changes the patient stance — I want institutional accumulation in the enabling layer, not another roadmap slide.",
+          "pills": ["AI/chips", "liquidity"]
+        },
+        {
+          "expert": "mp",
+          "text": "As a guest on the central-bank mechanics: the 16–17 June FOMC sits on top of a balance sheet that stopped shrinking on 1 December and is now topped up via reserve-management purchases — that is a deliberate 'keep reserves ample' stance, not stimulus, and it should not be read as a pivot. With the RRP drained near zero and money funds fully rotated into T-bills, the plumbing is functioning and the lending channel is open. The signal for this board is that liquidity has gone from a drag to neutral-supportive; the timing signal people want simply isn't there, because operational liquidity and a policy pivot are different things.",
+          "pills": ["liquidity", "dollar cycle"]
         }
       ]
     },
     {
-      "heading": "Risks — what could break the thesis?",
+      "heading": "The regulatory catalyst — CLARITY Act toward Senate markup",
       "turns": [
         {
           "expert": "mc",
-          "text": "The biggest market risk is regulatory front-running. The moment the SEC designates a specific asset class as a security, you get a liquidity vacuum before institutional flow can come in. It's not a reason to exit the thesis — it's a reason to watch legislative calendars. A stablecoin framework passing is bullish for the whole space; delayed or killed would compress the tokenisation trade by 12–18 months.",
-          "pills": ["risk", "regulatory"]
+          "text": "The legislative path is the cleanest forward-looking catalyst on the board, and it's the kind that institutions position ahead of, not after. The parallel-build pattern holds: the picks-and-shovels names — settlement, custody, on-chain compliance — get priced before the framework is signed, not after. So my job this week is to watch the 13D/13G scanner for the first serious accumulation in stablecoin- and tokenisation-infrastructure names, because that flow tends to lead the headline by weeks. The fact that nothing notable disclosed this week keeps me patient rather than chasing.",
+          "pills": ["regulatory", "early signal"]
         },
         {
           "expert": "ap",
-          "text": "My risk flag is escalation asymmetry. If US-China tensions produce export control expansion to semiconductor packaging or HBM memory, you get an AI infrastructure shock short term. Nvidia's supply chain runs through TSMC in Taiwan — a single point of geopolitical failure. I'd frame that as a lagged entry opportunity rather than a thesis break: supply shocks create fear washouts, then recover as constraints improve pricing power for survivors.",
+          "text": "Geopolitically, US market-structure clarity is also a dollar-system move. A credible US framework for stablecoins and tokenised Treasuries entrenches dollar rails in exactly the digital channels that BRICS members are trying to route around — it's soft-power infrastructure. So CLARITY progressing is mildly dollar-reinforcing in the medium term, which cuts slightly against a fast rotation. The two-way risk remains export controls: any escalation on semiconductors would hit the AI/chips leg regardless of how the crypto legislation lands.",
+          "pills": ["geopolitical", "regulatory"]
+        },
+        {
+          "expert": "so",
+          "text": "On the detail: the stablecoin-yield compromise is the real progress — lawmakers landed on permitting activity-based rewards while barring yield on idle balances, which removes a major sticking point that had stalled the bill. What is not resolved is the part that matters most for this thesis: the DeFi and tokenisation provisions, plus developer protections, are still being drafted. So I'd grade the space as 'advancing, not arrived.' Markup proceeding is bullish; a stall, or restrictive DeFi language, is the compression risk. This is a legislative-calendar watch, not a buy signal.",
+          "pills": ["regulatory", "watch"]
+        },
+        {
+          "expert": "jc",
+          "text": "This is the regime confirmation I keep pointing to: GENIUS is law, CLARITY is moving, and the FDIC is writing issuer standards — the real, signable policy that the tokenisation build rests on. That is what makes the infrastructure exposure a regime read rather than a story. The discipline, as always, is to separate the legislation from the tokens that borrow its language — and to remember that even confirmed policy tells you direction, not timing. Trace every name to a primary filing; the bill text and the issuer rules are the evidence, not a price chart.",
+          "pills": ["tokenisation", "conviction"]
+        },
+        {
+          "expert": "yt",
+          "text": "This regulatory track is mostly orthogonal to my theme — quantum and AI-compute aren't waiting on a market-structure bill — but two threads connect. First, the same dollar-system logic driving US crypto legislation also drives national AI and quantum funding programmes; sovereign compute is becoming strategic infrastructure, and procurement contracts are the catalyst I watch, not press releases. Second, a constructive risk regime keeps frontier capital flowing. So my read this week is unchanged: track disclosed accumulation and concrete procurement, treat headlines as noise. It's a watch, not a buy.",
+          "pills": ["AI/chips", "watch"]
+        },
+        {
+          "expert": "dm",
+          "text": "As a guest on market structure: the yield compromise matters because it defines the economics of holding a regulated stablecoin, and that flows straight through to which exchanges, custodians and on-ramps capture the volume. Bitcoin's move through $80k around early-May CLARITY progress showed the market does price legislative milestones, but it prices the milestone, not the as-yet-unwritten DeFi rules. So the structurally honest stance is exposure to the compliant rails and the disclosed institutional flow, sized by risk. Until the DeFi and tokenisation text exists, the market-structure read is constructive-but-incomplete.",
+          "pills": ["regulatory", "tokenisation"]
+        }
+      ]
+    },
+    {
+      "heading": "Risks — what could break the thesis",
+      "turns": [
+        {
+          "expert": "mc",
+          "text": "My top market risk is the compression itself: VIX near 17 with HY spreads at historically narrow levels means the market is paying very little for protection. That's not a sell signal, but it is the condition under which any negative surprise — a CLARITY stall, an export-control headline — gets amplified into a liquidity vacuum before institutional flow can absorb it. I treat that as a reason to keep the entry framework condition-based and paper-first, not a reason to exit the thesis. Thin disclosed accumulation plus rich risk pricing argues for patience, not size.",
           "pills": ["risk", "watch"]
         },
         {
+          "expert": "ap",
+          "text": "My risk flag stays escalation asymmetry. If US–China tensions push export controls into semiconductor packaging or HBM memory, you get an AI-infrastructure shock with the supply chain concentrated through TSMC in Taiwan — a single point of geopolitical failure. I'd frame that as a lagged entry opportunity rather than a thesis break: supply shocks create fear washouts, then survivors gain pricing power. The firm dollar is the quieter risk — if it stays strong, the rotation everyone is waiting for simply doesn't start.",
+          "pills": ["risk", "geopolitical"]
+        },
+        {
           "expert": "so",
-          "text": "The regulatory risk I watch most closely is fragmentation — the EU, US, UK, and Singapore all moving on different frameworks simultaneously without coordination. If a major tokenised asset platform has to hold four separate regulatory approvals, the compliance cost collapses the business case for smaller players. That actually concentrates the market in large, well-capitalised institutions — BlackRock, BNY Mellon, JPMorgan — which are already on the watchlist. Fragmentation risk is paradoxically bullish for incumbents.",
-          "pills": ["risk", "conviction"]
+          "text": "The regulatory risk I watch most is the gap between the parts of CLARITY that are done and the parts that aren't. Markets are treating the stablecoin-yield compromise as if it de-risks the whole bill, but DeFi, tokenisation and developer protections are still open — and that is exactly where restrictive language could land. Fragmentation across the US, EU MiCA, UK and Singapore frameworks compounds it: four approvals raise compliance cost and paradoxically concentrate the market in large incumbents. That's a real risk for smaller players even as it favours the well-capitalised names.",
+          "pills": ["risk", "regulatory"]
         },
         {
           "expert": "jc",
-          "text": "My risk flag is narrative capture. When a policy idea this big is in the air, the market floods with tokens and micro-caps borrowing the language — 'AI sovereign fund', official-looking seals, prospectus-grade copy — with nothing behind them. The dollar-debasement thesis is real and slow; most of the assets claiming to *be* it are fast and hollow. The other risk is the trade getting too consensus: if the soft-dollar view becomes the whole market's base case, it's already priced, and a hawkish surprise or a liquidity drain unwinds the crowded hard-asset positioning violently. The discipline that protects you is unchanged — trace every name to a primary filing, size speculation as speculation, and never let a famous person's quote about a concept become your due diligence on a ticker.",
-          "pills": ["risk", "narrative capture"]
+          "text": "My standing risk flag is narrative capture, and it's most dangerous precisely when real policy is advancing — the market floods with tokens and micro-caps borrowing the language. The clearest example remains the $AAIF Solana token: its own developers label it entertainment, it borrows the 'AI sovereign fund' name and presidential imagery, and it is not the policy and not a fund — never size it as one. The second risk is consensus: with liquidity supportive and vol compressed, the soft-dollar, long-hard-assets view is getting crowded, and crowded trades unwind violently on a hawkish surprise or a liquidity drain. The discipline that protects you is unchanged — trace every name to a primary filing, size speculation as speculation, and never let a famous person's quote about a concept become your due diligence on a ticker.",
+          "pills": ["narrative capture", "AAIF caution"]
+        },
+        {
+          "expert": "yt",
+          "text": "My risk flag is the sharpest on the board because the theme is the most speculative: frontier de-rating. Quantum pure-plays are small, illiquid and gap both ways on narrative; a single 'qubits don't scale economically' result, or AI-capex guidance rolling over, can compress the whole complex fast. The tight-spread, low-vol backdrop Maya flagged amplifies that for the most speculative names first. This is exactly why I size it as venture-style risk — tiny tranches, money you can lose entirely, never leveraged, and only on disclosed accumulation plus a real milestone, never a headline spike.",
+          "pills": ["risk", "AI/chips"]
         }
       ]
     },
     {
-      "heading": "Convergence — the overlapping signal",
+      "heading": "Convergence — the regime read",
       "turns": [
         {
           "expert": "mc",
-          "text": "Where we align: the parallel build is the key signal. Institutions aren't waiting for regulatory clarity — they're building tokenisation infrastructure now and will activate it the moment the framework arrives. That means the early entry window for the infrastructure layer is now, not after clarity. By the time stablecoin legislation passes, the picks-and-shovels plays — settlement rails, custody, on-chain compliance — will already be priced. The 13D/13G activist scan is the right proxy: watch for 5%+ accumulation in fintech and crypto adjacent names months before any announcement.",
-          "pills": ["conviction"]
+          "text": "Where the panel aligns: the build is happening ahead of the framework, and liquidity turning supportive shortens the window to be early. The 13D/13G scanner is the right proxy — watch for the first 5%+ accumulation in stablecoin- and tokenisation-infrastructure names, because by the time the DeFi rules are signed, the picks-and-shovels layer will already be priced. This week that flow hasn't disclosed, so the posture is constructive and patient, not active.",
+          "pills": ["conviction", "early signal"]
         },
         {
           "expert": "ap",
-          "text": "Closing thought: the dollar is not collapsing — but its monopoly on trade settlement is being structurally competed with for the first time since Bretton Woods. That's a decade-long shift, not a trade. The winning position is exposure to the infrastructure of the new settlement layer — blockchain rails, tokenised assets, AI-driven compliance — held with patience and sized by risk, not conviction. The regime is shifting. The question is pace, not direction.",
-          "pills": ["regime shift"]
+          "text": "Closing thought: the dollar isn't collapsing — it's firm near the top of its range — but its monopoly on settlement is being competed with for the first time since Bretton Woods, and US market-structure law is partly a defence of that monopoly. That's a decade-long shift in plumbing, not a trade. The winning position is exposure to the new settlement infrastructure, held with patience and sized by risk, not conviction. The regime is shifting; the question remains pace, not direction.",
+          "pills": ["regime shift", "dollar cycle"]
         },
         {
           "expert": "so",
-          "text": "From the policy lens: the institutions that win this decade are the ones with regulatory relationships, not just technology. The companies already working with the BIS, ECB, and Fed on CBDC pilots are building moats that aren't visible on a price chart. That's what the 13F institutional flow data is tracking indirectly — when Renaissance or ARK accumulate a name, ask what contract pipeline they know about. Regime confirmation from lagged disclosure is still regime confirmation.",
+          "text": "From the policy lens: the institutions that win this decade are the ones being written into the rule text — GENIUS issuer standards, CLARITY's market structure — not just the ones with the best technology. That regulatory moat doesn't show on a price chart, which is why lagged disclosure of who is accumulating compliant-issuer names is still regime confirmation. Advancing legislation plus supportive liquidity is a constructive regime; unwritten DeFi rules are why it's constructive, not complete.",
           "pills": ["regulatory", "conviction"]
         },
         {
           "expert": "jc",
-          "text": "Where I align with the panel: the dollar's slow debasement and the tokenisation build are the same trade seen from two ends. A soft dollar pushes capital toward scarce and productive assets; tokenisation is the rail that lets that capital move. The signable, real policy is the regime confirmation — the GENIUS Act on stablecoins is law, the CLARITY Act is moving through the Senate, and an AI sovereign-fund proposal is being drafted. That's the regime. The meme tokens riding the same words are the noise around it. The honest position is exposure to the infrastructure and the disclosed institutional flow, sized by risk from the stop, held with patience — and the narrative tokens left for someone else. This is regime reading, not prediction; none of it tells you the timing.",
-          "pills": ["regime shift", "conviction"]
+          "text": "Where I align with the panel: the accommodated dollar and the tokenisation build are the same trade seen from two ends — soft real rates push capital toward scarce, productive assets, and tokenisation is the rail it travels. The signable policy is the regime confirmation: GENIUS is law, CLARITY is moving, FDIC issuer rules are being drafted, and liquidity has turned supportive. The meme tokens riding the same words are the noise around it. The honest position is exposure to the infrastructure and the disclosed institutional flow, sized by risk from the stop, held with patience — this is regime reading, not prediction, and none of it tells you the timing.",
+          "pills": ["regime shift", "dollar debasement"]
+        },
+        {
+          "expert": "yt",
+          "text": "Where I connect to the panel: quantum and AI-compute is the same regime read one layer out — the accommodated dollar and supportive liquidity fund the scarce, productive frontier the same way they fund tokenisation rails. But it sits at the far, high-variance end of that spectrum, so it earns the smallest, most patient allocation, confirmed by disclosed institutional flow rather than narrative. Regime reading, not prediction: the funding direction is supportive; the timing of the milestones is unknowable. Track the enabling layer, size it as speculation, and let the headline pure-plays go to someone else.",
+          "pills": ["regime shift", "AI/chips"]
         }
       ]
     }
@@ -165,56 +218,57 @@
       "thesis": "tokenisation",
       "label": "Tokenisation Infrastructure",
       "effect": "BULLISH",
-      "reason": "Institutional product lines (BlackRock BUIDL, Franklin FOBXX) confirm the structural build is live. Regulatory fragmentation risk paradoxically benefits large incumbents already on the watchlist. Infrastructure layer still early-priced."
+      "reason": "GENIUS Act in force, CLARITY Act's stablecoin-yield compromise cleared and heading to Senate markup, FDIC issuer-standard rulemaking underway, and liquidity turned supportive (QT ended, reserve-management purchases, M2 +4.6%). Structural and regulatory build intact — caveat: DeFi/tokenisation provisions still unwritten, so constructive not complete."
     },
     {
       "thesis": "xrp",
       "label": "XRP Settlement Rail",
-      "effect": "BULLISH",
-      "reason": "Sovereign financial systems building alternative settlement rails as SWIFT dependency hedge. Gulf, ASEAN, Japan corridor integrations are live. Supply overhang remains — size by risk, not conviction."
+      "effect": "NEUTRAL",
+      "reason": "No fresh disclosed 5%+ accumulation or new corridor catalyst this week. Broad regulatory clarity helps the whole settlement-rail space, but the supply overhang persists and the specific XRP evidence stayed thin — size by risk, not conviction."
     },
     {
       "thesis": "rotation",
       "label": "Post-SpaceX Rotation",
       "effect": "NEUTRAL",
-      "reason": "Dollar cycle is the key variable — rotation needs Fed pivot to materialise. US-China export control risk is a short-term negative for chips but a lagged entry opportunity post-washout."
+      "reason": "Dollar firm near 100–101 (not the soft-dollar setup the rotation needs), VIX ~17 and historically tight HY spreads signal late-cycle complacency, and no rotation trigger disclosed. US–China export-control risk is a short-term negative for chips but a lagged entry opportunity post-washout."
+    },
+    {
+      "thesis": "quantum",
+      "label": "Quantum + AI Compute",
+      "effect": "NEUTRAL",
+      "reason": "Supportive liquidity and rising megacap AI-compute capex keep the frontier funded, but no fault-tolerance milestone, government/hyperscaler procurement award, or disclosed institutional accumulation in pure-play quantum names printed this week. A long-horizon, high-variance theme — speculative sizing only, confirmed by disclosed flow, never a headline chase."
     }
   ],
   "actionItems": [
     {
       "type": "watch",
       "ticker": null,
-      "text": "Track the US stablecoin bill legislative calendar — pass = 12–18 month acceleration for tokenisation thesis; delay = compression. This is the binary event."
+      "text": "Track the CLARITY Act Senate markup timing and how it treats tokenisation/DeFi and developer protections — this is the binary catalyst. Markup proceeding accelerates the tokenisation timeline; a stall or restrictive DeFi language compresses it."
     },
     {
       "type": "watch",
       "ticker": null,
-      "text": "Monitor DXY and Fed pivot signals. Dollar weakening is the rotation trigger for EM risk assets and the tokenisation trade."
+      "text": "Watch FOMC follow-through after the 16–17 June meeting — the pace of reserve-management purchases and any balance-sheet guidance confirms whether the liquidity tailwind holds. This is a regime signal, not a timing trigger."
     },
     {
       "type": "watch",
       "ticker": null,
-      "text": "Watch BRICS commodity pricing announcements — any formalisation of non-dollar settlement will front-run dollar weakness by weeks."
+      "text": "Monitor DXY around 100–101. A decisive break lower is the missing ingredient for the rotation thesis; continued firmness keeps the AI/chips leg cautious. Pair with HY spreads + VIX — compression this extreme is a complacency signal that would change the read if it widens."
+    },
+    {
+      "type": "research",
+      "ticker": null,
+      "text": "Screen SEC EDGAR for new 13D/13G 5%+ accumulation in stablecoin- and tokenisation-infrastructure names — none notable disclosed this week, so the first to cross is the early signal worth verifying against primary filings."
+    },
+    {
+      "type": "research",
+      "ticker": null,
+      "text": "Map which payment-stablecoin issuers fit the FDIC's proposed GENIUS Act issuer standards — compliance-ready issuers are structurally advantaged as the rule text firms up. Paper-trade-first sequencing; verify each name against the rulemaking and primary filings."
     },
     {
       "type": "research",
       "ticker": "PLTR",
-      "text": "Palantir (PLTR) — AI data monetisation play. Owns proprietary datasets and is actively licensing to model trainers. Public, liquid, fits the AI/chips thesis rotation. Verify insider activity and institutional positioning."
-    },
-    {
-      "type": "research",
-      "ticker": "SQ",
-      "text": "Block Inc (SQ) — on-chain payment infrastructure + Bitcoin treasury. Building cross-border settlement rails. Fits the fintech/tokenisation overlap. Check 13F holdings and recent Form 4s."
-    },
-    {
-      "type": "research",
-      "ticker": null,
-      "text": "Screen EU-regulated tokenised asset platforms for 13G accumulation. Companies with MiCA compliance ahead of US peers have a structural head start — the smart money may already be moving."
-    },
-    {
-      "type": "watch",
-      "ticker": null,
-      "text": "Track the proposed American AI Sovereign Wealth Fund (Sanders bill signalled, not yet law; concept echoed by Musk and Altman). A US government fund taking direct AI-equity stakes would be a major flow event worth front-running via 13F/13G. CAUTION: the $AAIF Solana token borrows this exact name and presidential imagery but is unrelated — its own developers disclaim it as 'for entertainment'. It is not the policy and not a fund; do not size it as one."
+      "text": "Palantir (PLTR) — AI data-monetisation play in the AI/chips leg; with the rotation read currently Cautious, this is a watch-and-verify, not an entry. Check recent Form 4 insider activity and 13F institutional positioning against the firm dollar / tight-spread backdrop."
     }
   ]
 }
