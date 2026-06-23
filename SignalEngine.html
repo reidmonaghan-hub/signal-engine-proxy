@@ -22240,6 +22240,63 @@
       }
     }
   ];
+  var SEED_OPPORTUNITIES = [
+    {
+      id: "opp-tok",
+      theme: "Tokenisation Infrastructure",
+      thesis: "tokenisation",
+      horizon: "Multi-year",
+      hook: "The plumbing of global finance moving on-chain \u2014 a once-in-a-generation re-platforming.",
+      scenario: "If DTC's tokenisation platform goes production-live and the CLARITY Act lands a workable framework, tokenised equities and Treasuries stop being pilots and become default rails. The incumbents already on the watchlist \u2014 exchanges, custodians, issuers \u2014 would capture the settlement layer of a multi-trillion-dollar market that today runs on legacy T+1 infrastructure.",
+      catalysts: ["DTC platform production-live (H2 2026 target)", "Top-tier asset managers expand tokenised product lines", "On-chain RWA TVL compounding past $100B"],
+      market: "Tokenised real-world assets \u2014 Treasuries, equities, funds \u2014 a market measured in trillions if TradFi settlement migrates on-chain.",
+      confirm: "Disclosed institutional accumulation (13F/13G) in settlement & custody names, alongside a live production platform \u2014 not just roadmaps."
+    },
+    {
+      id: "opp-quantum",
+      theme: "Quantum + AI Compute",
+      thesis: "quantum",
+      horizon: "Long-horizon \xB7 high variance",
+      hook: "The next compute frontier \u2014 AI demand meeting quantum hardware breaking through.",
+      scenario: "If a credible fault-tolerance / logical-qubit milestone lands while AI compute demand keeps compounding, the enabling layer \u2014 error-correction software, cryogenics, control electronics, and the chips feeding it \u2014 could re-rate as strategic national infrastructure. Early, disciplined exposure to the picks-and-shovels could compound for years as the frontier matures.",
+      catalysts: ["Fault-tolerant / logical-qubit milestone (IBM, Google, IonQ)", "Hyperscaler or government quantum procurement awards", "AI-compute capex guidance revised higher"],
+      market: "Quantum computing + AI-infrastructure \u2014 a category that barely exists in public-equity terms today, with sovereign and hyperscaler demand forming.",
+      confirm: "A real technical/procurement milestone AND disclosed institutional/insider accumulation in the enabling layer. Venture-style sizing only \u2014 tiny, patient, never leveraged."
+    },
+    {
+      id: "opp-xrp",
+      theme: "XRP Settlement Rail",
+      thesis: "xrp",
+      horizon: "Multi-year",
+      hook: "A cross-border settlement standard for the post-SWIFT era.",
+      scenario: "If sovereign and bank integrations keep compounding and the DTCC framework formally embraces XRP for cross-ledger settlement, its structural role in moving value across borders gets entrenched \u2014 turning a narrative into measurable on-ledger settlement volume.",
+      catalysts: ["DTCC framework formally integrates XRP", "New bank / RWA partners announce XRPL issuance", "Escrow supply absorbed by real settlement demand"],
+      market: "Cross-border value settlement \u2014 multi-trillion-dollar daily flows currently routed through slow, dollar-dominated rails.",
+      confirm: "Concrete integration milestones plus on-ledger volume pulling price \u2014 not settlement-rail narrative while escrow supply floods the market."
+    },
+    {
+      id: "opp-ai",
+      theme: "AI / Chips Rotation",
+      thesis: "rotation",
+      horizon: "Tactical \u2192 multi-year",
+      hook: "The compute supercycle \u2014 every wave of AI needs another wave of silicon.",
+      scenario: "If liquidity stays supportive and the AI-capex cycle keeps extending, quality semiconductor and AI-infrastructure names sold for liquidity (not fundamentals) offer oversold re-entry into a structural demand story. Each model generation pulls forward more compute, energy, and memory demand.",
+      catalysts: ["Megacaps keep raising AI-compute capex guidance", "Quality AI names oversold on liquidity, not bad news", "Memory / HBM supply tightening into demand"],
+      market: "AI compute, memory, and the energy that feeds it \u2014 a capex supercycle spanning chips, datacentres, and power.",
+      confirm: "Disclosed insider/institutional buying into weakness, plus capex guidance still rising \u2014 a stabilisation bar, not a falling knife."
+    },
+    {
+      id: "opp-new",
+      theme: "New Markets & Convergence",
+      thesis: null,
+      horizon: "Emerging",
+      hook: "Where the genuinely new TAM is forming \u2014 at the seams between these themes.",
+      scenario: "The most interesting upside often sits where themes converge: tokenised Treasuries as on-chain collateral, stablecoin FX rails compressing settlement to seconds, AI-driven compliance, and policy ideas like a US AI sovereign wealth fund. These are early and largely unpriced, and the smart money tends to disclose accumulation in the enabling names months before the headline.",
+      catalysts: ["On-chain FX / stablecoin settlement rails scaling", "AI sovereign-fund policy progressing (a proposal, not law)", "Tokenised collateral accepted by major venues"],
+      market: "The convergence layer \u2014 on-chain FX, tokenised collateral, AI + compliance \u2014 frontier categories without mature public proxies yet.",
+      confirm: "Early 13D/13G accumulation in enabling names, and real policy text \u2014 never narrative tokens borrowing the language."
+    }
+  ];
   var SEED_CONGRESS = [
     { who: "Sen. (Banking)", party: "R", ticker: "NVDA", action: "BUY", size: "$250\u2013500K", filed: "4d", note: "Committee oversees the AI-infra names in the rotation thesis" },
     { who: "Rep. (Fin. Svcs)", party: "D", ticker: "COIN", action: "BUY", size: "$100\u2013250K", filed: "6d", note: "Tokenisation-exposed; filed before Clarity Act news" },
@@ -22900,6 +22957,7 @@
       { id: "intel", label: "Intelligence", icon: Eye, desc: "Every disclosed flow behind the verdict \u2014 congressional trades, corporate insiders, institutional 13F, on-chain, theses, and the event calendar." },
       { id: "macro", label: "Macro", icon: Globe, desc: "The market backdrop: regime warning lights and macro readings that tell you how much risk appetite is sensible right now." },
       { id: "brief", label: "Expert Brief", icon: Users, desc: "A weekly roundtable of analyst personas debating the theses. Refreshes every Monday. Analysis only \u2014 not financial advice." },
+      { id: "opportunities", label: "Opportunities", icon: TrendingUp, desc: "The optimistic lens: bull-case scenarios, new markets, and future-growth ideas. Scenarios to investigate, not predictions \u2014 no price targets, no timing, no buy signals." },
       { id: "backtest", label: "Backtest Lab", icon: FlaskConical, desc: "Pressure-test any signal against real price history with honest stats (expectancy, drawdown) and a trust guard that flags small samples." },
       { id: "journal", label: "Journal", icon: BookOpen, desc: "Your paper-trade log: record entries, set stops, and size positions by risk before ever going live." }
     ];
@@ -23028,7 +23086,16 @@
     ), /* @__PURE__ */ import_react4.default.createElement(Panel, { title: "Event Horizon", icon: Clock, accent: C.amber, explain: "A calendar of upcoming catalysts \u2014 legislative votes, earnings, macro releases \u2014 that could move the theses. Use it to know what's coming, not to predict the outcome.", right: /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 9, color: C.inkFaint, fontFamily: mono } }, "TRIGGER CALENDAR") }, SEED_EVENTS.map((e, i) => {
       const tc = e.thesis === "rotation" ? C.blue : e.thesis === "tokenisation" ? C.violet : C.green;
       return /* @__PURE__ */ import_react4.default.createElement("div", { key: i, style: { display: "flex", gap: 12, padding: "11px 2px", alignItems: "center", borderBottom: i < SEED_EVENTS.length - 1 ? `1px solid ${C.line}` : "none" } }, /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontFamily: mono, fontSize: 11, fontWeight: 700, color: C.amber, minWidth: 60 } }, e.date), /* @__PURE__ */ import_react4.default.createElement("div", { style: { width: 6, height: 6, borderRadius: "50%", background: tc, flexShrink: 0 } }), /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 12, flex: 1, lineHeight: 1.35 } }, e.title), e.impact === "high" && /* @__PURE__ */ import_react4.default.createElement(Zap, { size: 13, color: C.amber, fill: `${C.amber}55` }));
-    }))), tab === "macro" && /* @__PURE__ */ import_react4.default.createElement(MacroView, { macroData, newsData, newsError, liveStatus }), tab === "brief" && /* @__PURE__ */ import_react4.default.createElement(BriefView, { briefingData, setTab, setLogTicker, setJournal }), tab === "backtest" && /* @__PURE__ */ import_react4.default.createElement(BacktestView, null), tab === "journal" && /* @__PURE__ */ import_react4.default.createElement(TradeJournalView, { journal, setJournal, logTicker, setLogTicker, clusterAlerts, autoLog, setAutoLog })), /* @__PURE__ */ import_react4.default.createElement("div", { style: { textAlign: "center", padding: "0 24px", color: C.inkFaint, fontSize: 11, lineHeight: 1.6, maxWidth: 760, margin: "0 auto" } }, "Signal Engine is a monitoring and analysis tool \u2014 not an automated trader, and not financial advice. Disclosed-trade data is inherently lagged. Verify every figure against primary sources before acting. You make every decision.")));
+    }))), tab === "macro" && /* @__PURE__ */ import_react4.default.createElement(MacroView, { macroData, newsData, newsError, liveStatus }), tab === "brief" && /* @__PURE__ */ import_react4.default.createElement(BriefView, { briefingData, setTab, setLogTicker, setJournal }), tab === "opportunities" && /* @__PURE__ */ import_react4.default.createElement(OpportunitiesView, { setTab, setActiveThesis }), tab === "backtest" && /* @__PURE__ */ import_react4.default.createElement(BacktestView, null), tab === "journal" && /* @__PURE__ */ import_react4.default.createElement(TradeJournalView, { journal, setJournal, logTicker, setLogTicker, clusterAlerts, autoLog, setAutoLog })), /* @__PURE__ */ import_react4.default.createElement("div", { style: { textAlign: "center", padding: "0 24px", color: C.inkFaint, fontSize: 11, lineHeight: 1.6, maxWidth: 760, margin: "0 auto" } }, "Signal Engine is a monitoring and analysis tool \u2014 not an automated trader, and not financial advice. Disclosed-trade data is inherently lagged. Verify every figure against primary sources before acting. You make every decision.")));
+  }
+  function OppRow({ icon: Icon2, label, col, children }) {
+    return /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", gap: 10, alignItems: "flex-start" } }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: 5, width: 150, flexShrink: 0 } }, /* @__PURE__ */ import_react4.default.createElement(Icon2, { size: 12, color: col, style: { flexShrink: 0 } }), /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 9.5, fontWeight: 700, letterSpacing: 1, color: col, fontFamily: mono } }, label)), /* @__PURE__ */ import_react4.default.createElement("div", { style: { flex: 1 } }, children));
+  }
+  function OpportunitiesView({ setTab, setActiveThesis }) {
+    return /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 16 } }, /* @__PURE__ */ import_react4.default.createElement("section", { "data-explain": "The optimistic lens: bull-case scenarios, new markets, and future-growth ideas across the themes. Deliberately upbeat \u2014 but still NOT predictions. No price targets, no timing, no buy triggers; every scenario lists what would confirm it. The rest of Signal Engine stays conservative.", style: { background: `linear-gradient(135deg, ${C.green}14, ${C.violet}10)`, border: `1px solid ${C.green}44`, borderRadius: 10, padding: "16px 18px" } }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: 9, marginBottom: 8 } }, /* @__PURE__ */ import_react4.default.createElement(TrendingUp, { size: 16, color: C.green }), /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 12, fontWeight: 700, letterSpacing: 1.4, color: C.green, fontFamily: mono } }, "OPPORTUNITY LENS")), /* @__PURE__ */ import_react4.default.createElement("div", { style: { fontSize: 13.5, lineHeight: 1.6, color: C.inkDim } }, "The upside view \u2014 new markets, growth scenarios, and the bull case for each theme. These are ", /* @__PURE__ */ import_react4.default.createElement("strong", { style: { color: C.green } }, "scenarios, not predictions"), ": no price targets, no timing, no buy signals. Each card names ", /* @__PURE__ */ import_react4.default.createElement("strong", null, "what would confirm it"), ", so optimism stays tied to disclosed evidence. Still not financial advice.")), SEED_OPPORTUNITIES.map((o) => /* @__PURE__ */ import_react4.default.createElement("section", { key: o.id, "data-explain": `Upside scenario for ${o.theme}: a bull-case story plus the catalysts, the new market it could open, and \u2014 most importantly \u2014 what disclosed evidence would confirm it. A scenario to investigate, not a forecast.`, style: { background: C.panel, border: `1px solid ${C.line}`, borderRadius: 10, overflow: "hidden" } }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { padding: "13px 16px", background: C.panelHi, borderBottom: `1px solid ${C.line}`, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" } }, /* @__PURE__ */ import_react4.default.createElement(Zap, { size: 14, color: C.green }), /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 13, fontWeight: 700, color: C.ink } }, o.theme), /* @__PURE__ */ import_react4.default.createElement("span", { style: { marginLeft: "auto", fontSize: 8.5, fontWeight: 700, letterSpacing: 1, color: C.amber, border: `1px solid ${C.amber}55`, borderRadius: 4, padding: "2px 7px", fontFamily: mono } }, "SCENARIO \xB7 NOT A FORECAST")), /* @__PURE__ */ import_react4.default.createElement("div", { style: { padding: 16 } }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { fontSize: 13.5, fontWeight: 600, color: C.green, marginBottom: 8 } }, o.hook), /* @__PURE__ */ import_react4.default.createElement("p", { style: { margin: "0 0 14px", fontSize: 13, lineHeight: 1.65, color: C.inkDim } }, o.scenario), /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 11 } }, /* @__PURE__ */ import_react4.default.createElement(OppRow, { icon: Zap, label: "CATALYSTS", col: C.amber }, /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 6 } }, o.catalysts.map((c, i) => /* @__PURE__ */ import_react4.default.createElement("span", { key: i, style: { fontSize: 11, color: C.inkDim, background: `${C.amber}10`, border: `1px solid ${C.amber}30`, borderRadius: 4, padding: "3px 8px" } }, c)))), /* @__PURE__ */ import_react4.default.createElement(OppRow, { icon: Globe, label: "NEW MARKET", col: C.blue }, /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 12, color: C.inkDim, lineHeight: 1.5 } }, o.market)), /* @__PURE__ */ import_react4.default.createElement(OppRow, { icon: CircleCheck, label: "WHAT WOULD CONFIRM IT", col: C.green }, /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 12, color: C.inkDim, lineHeight: 1.5 } }, o.confirm)), /* @__PURE__ */ import_react4.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginTop: 2, flexWrap: "wrap" } }, /* @__PURE__ */ import_react4.default.createElement("span", { style: { fontSize: 9, fontWeight: 700, letterSpacing: 1, color: C.violet, border: `1px solid ${C.violet}44`, borderRadius: 4, padding: "2px 8px", fontFamily: mono } }, "HORIZON \xB7 ", o.horizon.toUpperCase()), o.thesis && /* @__PURE__ */ import_react4.default.createElement("button", { type: "button", onClick: () => {
+      setActiveThesis(o.thesis);
+      setTab("intel");
+    }, style: { cursor: "pointer", background: "none", border: "none", color: C.blue, fontSize: 11, fontWeight: 600, fontFamily: "inherit", display: "flex", alignItems: "center", gap: 3, padding: 0 } }, "See the disclosed evidence ", /* @__PURE__ */ import_react4.default.createElement(ChevronRight, { size: 12 }))))))), /* @__PURE__ */ import_react4.default.createElement("div", { style: { background: `${C.amber}0C`, border: `1px solid ${C.amber}30`, borderRadius: 8, padding: "12px 16px", fontSize: 11.5, color: C.inkDim, lineHeight: 1.55 } }, /* @__PURE__ */ import_react4.default.createElement("strong", { style: { color: C.amber } }, "Reading this honestly:"), " these are optimistic scenarios to investigate, not things that will happen. The upside is real; so is the chance any scenario simply doesn't play out. Size by risk from a stop, paper-trade first, and never use leverage. Not financial advice."));
   }
   function BriefView({ briefingData, setTab, setLogTicker, setJournal }) {
     if (!briefingData || !briefingData.experts?.length) {
